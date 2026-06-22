@@ -1,0 +1,6 @@
+# Regulatory Checklist Plant A
+OSHA-1910.147: Lockout/tagout procedure must cover stored energy isolation for pumps and electrical panels. Applies to P-101.
+OSHA-1910.146: Confined space entry permit and rescue plan must be documented for pressure vessels. Applies to V-203.
+API-510: Pressure vessel external inspection evidence must be available at required interval. Applies to V-203.
+NFPA-70E: Arc flash labeling and energized work procedure must be available for electrical panels. Applies to EP-401.
+ISO-14224: Failure data taxonomy should be recorded for rotating equipment. Applies to P-101 and C-201.

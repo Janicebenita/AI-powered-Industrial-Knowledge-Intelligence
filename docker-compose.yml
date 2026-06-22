@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: industrial
+      POSTGRES_PASSWORD: industrial
+      POSTGRES_DB: industrial_brain
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://industrial:industrial@postgres:5432/industrial_brain
+      REDIS_URL: redis://redis:6379/0
+      CHROMA_URL: http://chromadb:8000
+      JWT_SECRET: change-me
+    depends_on:
+      - postgres
+      - redis
+      - chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./sample_data:/app/sample_data
+
+  frontend:
+    build: ./frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:8000
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
+  chroma_data:

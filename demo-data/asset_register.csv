@@ -1,0 +1,7 @@
+asset_tag,asset_name,asset_type,location,criticality,operating_status,risk_score,reliability_score,compliance_status,oem
+P101,Condensate Transfer Pump,Centrifugal Pump,Unit A Train 1,High,Running with advisory,88,62,Partial,FlowServe
+B203,Package Boiler,Boiler,Boiler House,Medium,Stable,54,78,Ready,Thermax
+C201,Instrument Air Compressor,Screw Compressor,Train 2,High,Monitored,71,69,Partial,Atlas Copco
+HX401,Cooling Water Heat Exchanger,Shell and Tube Heat Exchanger,Area CW-2,High,Inspection due,76,66,At Risk,Alfa Laval
+V203,Knockout Drum,Pressure Vessel,Area A-3,Critical,Permit required,69,73,Partial,In-house
+EP501,MCC Electrical Panel,Electrical Panel,Bay E-4,High,Evidence missing,82,70,At Risk,Siemens

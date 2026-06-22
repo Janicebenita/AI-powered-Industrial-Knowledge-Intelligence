@@ -1,0 +1,13 @@
+# Near Miss Report NM-2026-07
+Date: 2026-05-11
+Location: Area A-3
+Related assets: V203, P101, EP501
+
+Near miss:
+Maintenance crew approached V203 for opening activity before rescue plan evidence was attached to the permit-to-work package. A safety officer stopped the job during pre-task review.
+
+Recurring safety risks:
+permit-to-work documentation lag, incomplete LOTO verification, missing confined space rescue plan, and delayed attachment of audit evidence.
+
+Preventive recommendation:
+Add AI evidence checklist before high-risk maintenance work is released.

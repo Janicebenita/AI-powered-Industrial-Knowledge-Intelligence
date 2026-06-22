@@ -1,0 +1,6 @@
+# Incident Report INC-771
+Date: 2026-01-27
+Asset: C-201 Instrument Air Compressor in Train 2
+Incident: TRIP-OIL-LOW caused compressor shutdown. Inspection found oil filter element collapsed and bearing wear.
+Action: replaced filter element, inspected bearing, calibrated pressure switch.
+Potential root cause: overdue preventive maintenance interval.

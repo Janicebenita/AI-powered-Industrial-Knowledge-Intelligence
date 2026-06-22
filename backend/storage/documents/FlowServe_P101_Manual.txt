@@ -1,0 +1,15 @@
+# FlowServe P101 Manual
+Equipment: Condensate Transfer Pump P101
+Type: Centrifugal process pump
+
+Installation and maintenance guidance:
+Maintain adequate NPSH margin and avoid operation far left of pump curve. Cavitation may cause vibration anomaly, seal face damage, impeller erosion, and bearing overheating.
+
+Mechanical seal:
+Verify seal flush flow before startup. Do not restart after seal replacement until coupling alignment, suction pressure, and casing venting are confirmed.
+
+Troubleshooting:
+High vibration may be caused by cavitation, misalignment, bearing wear, impeller imbalance, suction restriction, or operation outside preferred operating range.
+
+Preventive maintenance:
+Inspect suction strainer differential pressure, lubricate bearings per interval, verify mechanical seal flush, inspect impeller wear, and trend vibration monthly.

@@ -1,0 +1,18 @@
+# SOP-22 Pump Isolation and Maintenance Preparation
+Revision: 8
+Applies to: Pump P101 and centrifugal process pumps
+
+Before maintenance on Pump P101:
+1. Issue permit-to-work.
+2. Apply lockout tagout on motor starter and local disconnect.
+3. Close suction and discharge isolation valves.
+4. Drain casing and verify zero pressure.
+5. Isolate seal flush line.
+6. Verify stored energy release.
+7. Confirm no hot work or line break hazards remain.
+
+Safety hazards:
+stored energy, line break, hot surface, rotating equipment, chemical exposure.
+
+Required evidence:
+LOTO checklist, zero pressure verification, permit-to-work, and technician sign-off.

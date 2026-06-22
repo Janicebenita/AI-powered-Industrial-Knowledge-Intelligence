@@ -1,0 +1,16 @@
+# Incident Report INC-C201-2026-01
+Date: 2026-01-27
+Asset: C201 Instrument Air Compressor
+Location: Train 2
+
+Incident:
+Compressor C201 tripped on TRIP-OIL-LOW during plant restart. Operators observed bearing overheating and unstable discharge pressure before shutdown.
+
+Immediate action:
+Operations switched to standby compressor. Maintenance replaced collapsed oil filter element, inspected drive-end bearing, and calibrated the low oil pressure switch.
+
+Likely causes:
+oil contamination, overdue preventive maintenance interval, restricted oil filter, and insufficient post-maintenance functional testing.
+
+RCA requirement:
+Generate RCA for compressor C201 and compare with prior oil analysis records.

@@ -1,0 +1,12 @@
+# Factory Act Requirements Summary
+Applicable plant: Plant A
+
+Requirements:
+1. Safe access and guarding must be maintained for rotating equipment including Pump P101 and Compressor C201.
+2. Pressure systems including Boiler B203 and Pressure Vessel V203 must have inspection records and test certificates.
+3. Electrical installations including EP501 must maintain current safety labeling and access control.
+4. Incident and near-miss records must be retained and reviewed for recurring hazards.
+5. Quality non-conformances affecting safe operation must be closed with evidence.
+
+Detected gaps:
+V203 pressure test evidence missing. EP501 arc flash evidence missing. HX401 quality non-conformance QA12 remains open.

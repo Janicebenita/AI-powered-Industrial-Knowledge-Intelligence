@@ -1,0 +1,7 @@
+tag,name,asset_type,location,criticality,status
+P-101,Condensate Transfer Pump,Pump,Unit A,High,At Risk
+C-201,Instrument Air Compressor,Compressor,Train 2,High,Monitored
+B-501,Package Boiler,Boiler,Boiler House,Medium,Monitored
+HX-301,Cooling Water Heat Exchanger,Heat Exchanger,Area CW-2,High,Inspection Due
+V-203,Knockout Drum,Pressure Vessel,Area A-3,Critical,Permit Required
+EP-401,MCC Electrical Panel,Electrical Panel,Bay E-4,High,Evidence Missing

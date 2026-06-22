@@ -1,0 +1,6 @@
+clause,requirement,applies_to,evidence_status,risk_category,recommended_action
+OISD-105-PTW,Permit-to-work must be available for maintenance on hazardous equipment,P101,Partial,High,Attach permit-to-work for WO-10877
+OISD-STD-118,Pressure vessel inspection and test evidence must be current,V203,Missing,High,Upload pressure test certificate
+OISD-137-LOTO,Lockout tagout isolation must be verified before rotating equipment maintenance,P101,Covered,Medium,Retain LOTO checklist with work order
+OISD-244-ELECT,Electrical panel energized work controls must be documented,EP501,Missing,Critical,Attach energized work SOP and arc flash label evidence
+OISD-INS-HX,Heat exchanger inspection findings must be closed before startup,HX401,Partial,High,Close corrosion under insulation follow-up

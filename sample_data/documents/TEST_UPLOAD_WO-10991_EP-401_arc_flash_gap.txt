@@ -1,0 +1,23 @@
+# Maintenance and Safety Work Order WO-10991
+Date: 2026-06-18
+Asset: EP-401 MCC Electrical Panel in Bay E-4
+Location: Bay E-4
+Role: safety officer and electrical technician
+
+Inspection finding:
+EP-401 was reviewed during the monthly electrical safety walkdown. The panel has an outdated arc flash label and the latest energized work procedure was not attached to the equipment record.
+
+Alarm code:
+FAULT-BKR-TRIP was reported by operations during restart.
+
+Maintenance action:
+Technician inspected feeder breaker, torqued accessible lugs, cleaned panel ventilation filter, and verified breaker trip history. No live work was performed.
+
+Safety hazards:
+Arc flash, stored energy, and energized electrical work.
+
+Regulatory reference:
+NFPA-70E requires current arc flash labeling and documented energized work controls for electrical panels.
+
+Recommended next action:
+Update arc flash study label, attach energized work SOP, and schedule follow-up inspection before the next compliance audit.
