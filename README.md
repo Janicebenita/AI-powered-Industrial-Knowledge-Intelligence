@@ -395,5 +395,7 @@ If retrieval confidence is weak, the system responds transparently and recommend
 <p align="center">
   <a href="./docs/demo.mp4">
     <img src="https://img.shields.io/badge/▶-Watch%20Demo-blue?style=for-the-badge">
+    <p align="center">
+      View Raw in the next
   </a>
 </p>
