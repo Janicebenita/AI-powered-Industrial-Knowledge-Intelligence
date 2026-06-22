@@ -392,5 +392,8 @@ If retrieval confidence is weak, the system responds transparently and recommend
   ⭐ Transforming Industrial Knowledge into Operational Excellence ⭐
 </p>
 ## 🎥 Product Demonstration
-
-📹 [Watch Industrial Brain AI Demo](docs/demo.mp4)
+<p align="center">
+  <a href="./docs/demo.mp4">
+    <img src="https://img.shields.io/badge/▶-Watch%20Demo-blue?style=for-the-badge">
+  </a>
+</p>
