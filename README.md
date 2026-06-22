@@ -1,7 +1,7 @@
 # 🏭 Industrial Brain AI
 
 <p align="center">
-  <img src="docs/Banner.png"
+  <img src="docs/banner.png"
        alt="Industrial Brain AI Banner"
        width="100%"
        style="border-radius:20px;">
