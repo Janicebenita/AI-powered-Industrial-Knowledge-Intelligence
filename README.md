@@ -181,17 +181,7 @@ flowchart TD
 - 🧠 **ChromaDB** – Vector database for embeddings and semantic retrieval
 - 🐳 **Docker** – Containerized deployment
 - 📦 **Docker Compose** – Multi-service local and demo environment
-- from fastapi import APIRouter
-from app.database.seed_demo_data import load_demo_data
 
-router = APIRouter(
-    prefix="/demo",
-    tags=["Demo"]
-)
-
-
-@router.post("/seed")
-async def seed_demo_dataset():
     """
     Load Industrial Brain AI demo dataset.
     """
@@ -213,16 +203,10 @@ async def seed_demo_dataset():
     """
 
     return load_demo_data()
-    from fastapi import FastAPI
-from app.api.demo import router as demo_router
-
-app = FastAPI(
-    title="Industrial Brain AI"
-)
+    
 
 app.include_router(demo_router)
-docker compose exec backend \
-python -m app.database.seed_demo_data
+
 POST /demo/seed
 {
   "status": "success",
