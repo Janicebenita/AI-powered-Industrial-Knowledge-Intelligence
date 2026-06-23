@@ -183,39 +183,9 @@ flowchart TD
 - 📦 **Docker Compose** – Multi-service local and demo environment
 
     """
-    Load Industrial Brain AI demo dataset.
-    """
-
-    return load_demo_data()
-    from fastapi import APIRouter
-from app.database.seed_demo_data import load_demo_data
-
-router = APIRouter(
-    prefix="/demo",
-    tags=["Demo"]
-)
-
-
-@router.post("/seed")
-async def seed_demo_dataset():
-    """
-    Load Industrial Brain AI demo dataset.
-    """
-
-    return load_demo_data()
     
 
-app.include_router(demo_router)
 
-POST /demo/seed
-{
-  "status": "success",
-  "message": "Demo dataset loaded successfully",
-  "timestamp": "2026-06-22T10:00:00Z",
-  "assets_loaded": 6,
-  "documents_loaded": 5,
-  "failures_loaded": 3
-}
 ## 📦 Demo Data
 
 The demo dataset includes:
