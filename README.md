@@ -19,6 +19,7 @@
   <img src="https://readme-typing-svg.herokuapp.com?font=Poppins&weight=600&size=25&duration=3500&pause=1000&color=00C2FF&center=true&vCenter=true&width=1000&lines=Asset+Intelligence;Predictive+Maintenance;Compliance+Automation;Root+Cause+Analysis;Knowledge+Graph+AI;Industrial+Copilot;Operational+Excellence" />
 </p>
 
+
 <p align="center">
   <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white"/>
   <img src="https://img.shields.io/badge/Next.js%2015-000000?style=for-the-badge&logo=nextdotjs&logoColor=white"/>
@@ -28,7 +29,15 @@
 </p>
 
 ---
+## 🏆 ET AI Hackathon 2026 Submission
 
+**Problem Statement #8**
+
+**AI for Industrial Knowledge Intelligence: Unified Asset & Operations Brain**
+
+Industrial Brain AI addresses the challenge of fragmented industrial knowledge by unifying engineering documents, maintenance records, inspection reports, SOPs, compliance evidence, and operational history into a single AI-powered intelligence platform featuring Knowledge Graphs, RAG-based Copilot, Asset Intelligence, RCA Automation, Compliance Intelligence, and Lessons Learned Analytics.
+
+---
 ## 🚀 Overview
 
 Industrial Brain AI is a unified Asset & Operations Intelligence Platform for manufacturing plants, refineries, steel plants, chemical facilities, power plants, and asset-intensive industrial organizations.
@@ -346,10 +355,26 @@ If retrieval confidence is weak, the system responds transparently and recommend
   ⭐ Transforming Industrial Knowledge into Operational Excellence ⭐
 </p>
 ## 🎥 Product Demonstration
-<p align="center">
-  <a href="./docs/demo.mp4">
-    <img src="https://img.shields.io/badge/▶-Watch%20Demo-blue?style=for-the-badge">
-    <p align="center">
-      View Raw in the next
-  </a>
-</p>
+
+A 3.5-minute demo video is included in this repository.
+
+[▶ Watch Demo Video](docs/demo.mp4)
+
+The demo covers:
+- Executive Command Dashboard
+- Industrial AI Copilot
+- Document Ingestion Center
+- Knowledge Graph Explorer
+- Entity Intelligence
+- Asset 360
+- RCA Assistant
+- Compliance Intelligence
+- Lessons Learned Engine
+
+---
+
+## 👥 Team
+
+**Team Name:** Industrial Brain AI  
+**Submission:** ET AI Hackathon 2026  
+**Problem Statement:** #8 – AI for Industrial Knowledge Intelligence: Unified Asset & Operations Brain
