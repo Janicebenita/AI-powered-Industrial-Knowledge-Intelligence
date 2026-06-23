@@ -354,6 +354,8 @@ If retrieval confidence is weak, the system responds transparently and recommend
 <p align="center">
   ⭐ Transforming Industrial Knowledge into Operational Excellence ⭐
 </p>
+---
+
 ## 🎥 Product Demonstration
 
 A 3.5-minute demo video is included in this repository.
