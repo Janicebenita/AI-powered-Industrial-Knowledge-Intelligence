@@ -1,5 +1,5 @@
 # 🏭 Industrial Brain AI
-
+Industrial Brain AI reduces downtime, accelerates root cause analysis, improves compliance readiness, and preserves critical engineering knowledge through AI-powered operational intelligence.
 <p align="center">
   <img src="docs/banner.png"
        alt="Industrial Brain AI Banner"
@@ -191,7 +191,7 @@ flowchart TD
 - 🐳 **Docker** – Containerized deployment
 - 📦 **Docker Compose** – Multi-service local and demo environment
 
-    """
+    
     
 
 
