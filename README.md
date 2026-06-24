@@ -383,6 +383,6 @@ The demo covers:
 
 ## 👥 Team
 
-**Team Name:** Industrial Brain AI  
+**Team Name:** janicebenita123  
 **Submission:** ET AI Hackathon 2026  
 **Problem Statement:** #8 – AI for Industrial Knowledge Intelligence: Unified Asset & Operations Brain
