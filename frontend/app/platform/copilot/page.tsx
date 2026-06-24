@@ -42,6 +42,14 @@ type CopilotResponse = {
   evidence_strength: string;
 };
 
+type AnswerSection = {
+  recommendedSop: string;
+  reason: string;
+  evidence: string[];
+  relatedAssets: string[];
+  confidence: string;
+};
+
 const answers: Record<string, StaticAnswer> = {
   pump: {
     match: ["pump p101", "failed repeatedly", "seal failure"],
@@ -106,13 +114,96 @@ function confidencePercent(value: number) {
   return Math.round(value <= 1 ? value * 100 : value);
 }
 
+function inferRecommendedSop(question: string, answer: string, documents: string[]) {
+  const sourceText = `${question} ${answer} ${documents.join(" ")}`.toLowerCase();
+  const sopDocument = documents.find((document) => /sop|procedure|loto|isolation|permit/i.test(document));
+
+  if (sopDocument) {
+    return sopDocument;
+  }
+  if (sourceText.includes("v203") || sourceText.includes("v-203") || sourceText.includes("vessel")) {
+    return "SOP-VES-203 Pressure Vessel Opening and Confined Space Entry";
+  }
+  if (sourceText.includes("p101") || sourceText.includes("p-101") || sourceText.includes("pump")) {
+    return "SOP_22_Pump_Isolation.txt";
+  }
+  if (sourceText.includes("electrical") || sourceText.includes("arc flash") || sourceText.includes("ep501")) {
+    return "LOTO_Procedure.txt";
+  }
+  return "No specific SOP identified from cited evidence";
+}
+
+function buildAnswerSection({
+  question,
+  answerText,
+  citations,
+  confidence,
+  response,
+  fallback
+}: {
+  question: string;
+  answerText: string;
+  citations: Array<{ title: string; quote: string }>;
+  confidence: string;
+  response: CopilotResponse | null;
+  fallback: StaticAnswer;
+}): AnswerSection {
+  const insufficient = response?.evidence_strength === "insufficient" || citations.length === 0;
+  const relatedAssets = insufficient
+    ? []
+    : response?.related_assets?.length
+    ? response.related_assets
+    : fallback.context.filter((item) => /\b(P|C|B|HX|V|EP)-?\d{3}\b|P101|V203|EP501|HX401|C201|B203/i.test(item));
+  const evidence = citations.length
+    ? citations.slice(0, 4).map((citation) => `${citation.title}: ${citation.quote}`)
+    : ["No source citation was returned. Ask a narrower question or upload the missing evidence document."];
+
+  return {
+    recommendedSop: insufficient ? "Not available from cited evidence" : inferRecommendedSop(question, answerText, citations.map((citation) => citation.title)),
+    reason: answerText,
+    evidence,
+    relatedAssets: relatedAssets.length ? relatedAssets : ["No specific related asset detected"],
+    confidence
+  };
+}
+
+function StructuredAnswer({ section }: { section: AnswerSection }) {
+  const rows = [
+    { label: "Recommended SOP", body: section.recommendedSop },
+    { label: "Reason", body: section.reason },
+    { label: "Evidence", list: section.evidence },
+    { label: "Related Assets", list: section.relatedAssets },
+    { label: "Confidence", body: section.confidence }
+  ];
+
+  return (
+    <div className="grid gap-4">
+      {rows.map((row) => (
+        <div key={row.label} className="rounded-xl border border-white/10 bg-white/[0.045] p-4">
+          <h3 className="mb-2 text-sm font-bold uppercase tracking-normal text-cyan-200">{row.label}:</h3>
+          {row.list ? (
+            <div className="grid gap-2">
+              {row.list.map((item, index) => (
+                <p key={`${row.label}-${index}`} className="break-words text-sm leading-6 text-slate-100">
+                  {item}
+                </p>
+              ))}
+            </div>
+          ) : (
+            <p className="break-words text-base leading-7 text-slate-100">{row.body}</p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function CopilotPage() {
   const [question, setQuestion] = useState("Why has Pump P101 failed repeatedly?");
-  const [asked, setAsked] = useState(true);
+  const [asked, setAsked] = useState(false);
   const [response, setResponse] = useState<CopilotResponse | null>(null);
   const [isAsking, setIsAsking] = useState(false);
   const [error, setError] = useState("");
-  const fallback = getFallbackAnswer(question);
 
   async function askCopilot(nextQuestion = question) {
     const trimmed = nextQuestion.trim();
@@ -147,7 +238,7 @@ export default function CopilotPage() {
     }
   }
 
-  const answerText = response?.direct_answer ?? fallback.answer;
+  const answerText = response?.direct_answer ?? "";
   const citations = response?.citations?.length
     ? response.citations.map((citation, index) => ({
         id: `${citation.document_id}-${citation.chunk_id}-${index}`,
@@ -156,16 +247,19 @@ export default function CopilotPage() {
         confidence: confidencePercent(citation.confidence),
         quote: citation.quote
       }))
-    : fallback.citations.map((citation, index) => ({ ...citation, id: `fallback-${index}` }));
-  const confidence = response ? `${confidencePercent(response.confidence)}%` : fallback.confidence;
-  const evidence = response ? response.evidence_strength : fallback.evidence;
+    : [];
+  const confidence = response ? `${confidencePercent(response.confidence)}%` : "0%";
+  const evidence = response ? response.evidence_strength : "No question asked";
+  const structuredAnswer = response
+    ? buildAnswerSection({ question, answerText, citations, confidence, response, fallback: getFallbackAnswer(question) })
+    : null;
   const context = response
     ? [
         ...(response.related_assets.length ? response.related_assets.map((asset) => `Asset ${asset}`) : ["No specific asset detected"]),
         ...(response.related_documents.length ? response.related_documents.slice(0, 4) : ["No related documents returned"]),
         ...response.suggested_next_actions.slice(0, 3)
       ]
-    : fallback.context;
+    : ["Ask a question to retrieve cited plant evidence."];
 
   return (
     <div className="grid min-w-0 gap-5 xl:grid-cols-[260px_minmax(0,1fr)] 2xl:grid-cols-[260px_minmax(0,1fr)_300px]">
@@ -192,6 +286,27 @@ export default function CopilotPage() {
               <p className="break-words text-sm text-slate-400">Cited industrial answers with uncertainty handling.</p>
             </div>
           </div>
+          <div className="mb-5 rounded-2xl border border-white/10 bg-white/[0.05] p-4">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <input
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    void askCopilot();
+                  }
+                }}
+                className="min-h-12 min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.07] px-4 outline-none focus:border-cyan-300"
+              />
+              <button
+                onClick={() => void askCopilot()}
+                disabled={isAsking}
+                className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-500 px-5 font-bold hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isAsking ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />} Ask
+              </button>
+            </div>
+          </div>
           {asked ? (
             <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/5 p-5">
               <div className="mb-3 flex items-center gap-2 text-sm text-emerald-200">
@@ -203,34 +318,19 @@ export default function CopilotPage() {
                   <AlertTriangle className="shrink-0" size={18} />
                   <span>{error}</span>
                 </div>
+              ) : isAsking ? (
+                <p className="break-words text-lg leading-8 text-slate-100">Retrieving relevant uploaded document chunks...</p>
+              ) : structuredAnswer ? (
+                <StructuredAnswer section={structuredAnswer} />
               ) : (
-                <p className="break-words text-lg leading-8 text-slate-100">{isAsking ? "Retrieving relevant uploaded document chunks..." : answerText}</p>
+                <p className="break-words text-lg leading-8 text-slate-100">
+                  Ask a question to search indexed documents. The copilot will decline if it cannot find cited evidence.
+                </p>
               )}
             </div>
           ) : null}
           <div className="mt-5 grid gap-3">
             {!isAsking && citations.map((citation) => <CitationCard key={citation.id} {...citation} />)}
-          </div>
-        </GlassCard>
-        <GlassCard>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <input
-              value={question}
-              onChange={(event) => setQuestion(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  void askCopilot();
-                }
-              }}
-              className="min-h-12 min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.07] px-4 outline-none focus:border-cyan-300"
-            />
-            <button
-              onClick={() => void askCopilot()}
-              disabled={isAsking}
-              className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-500 px-5 font-bold hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isAsking ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />} Ask
-            </button>
           </div>
         </GlassCard>
       </section>
