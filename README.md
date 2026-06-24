@@ -376,6 +376,11 @@ The demo covers:
 
 ---
 
+## 🌐 Live Demo
+🚀 Application: https://intelligence-brain.onrender.com
+
+---
+
 ## 👥 Team
 
 **Team Name:** Industrial Brain AI  
