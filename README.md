@@ -9,6 +9,7 @@ Industrial Brain AI converts fragmented industrial knowledge from documents, dra
 - FastAPI backend with modular services for ingestion, extraction, embeddings, retrieval, graph, copilot, maintenance, compliance, RCA, reports, and audit logging.
 - Multi-agent AI system: Document Intelligence, Knowledge Graph, Maintenance, Compliance, RCA, Lessons Learned, and Executive Insights agents.
 - Next.js 15 TypeScript frontend with premium landing page and enterprise platform UI.
+- Expo React Native mobile app for field technicians, engineers, auditors, and managers.
 - Pages: Executive Dashboard, Ingestion Center, Entity Extraction, Knowledge Graph, Copilot, Asset 360, RCA, Compliance, Lessons Learned, and Evaluation.
 - SQLAlchemy model layer and Alembic migration scaffold for production PostgreSQL.
 - JWT authentication, RBAC helpers, document permissions fields, and audit logs.
@@ -132,8 +133,28 @@ frontend/
   services/
   store/
   types/
+mobile/
+  src/
+    screens/
+    api.ts
 docs/
 sample_data/
+```
+
+## Mobile App
+
+The mobile application lives in `mobile/` and uses the same FastAPI backend.
+
+```powershell
+cd mobile
+npm install
+npm run start
+```
+
+For a physical phone, update `mobile/src/api.ts` so `API_BASE` points to your computer LAN IP, for example:
+
+```ts
+export const API_BASE = "http://192.168.1.25:8000";
 ```
 
 ## Docker
