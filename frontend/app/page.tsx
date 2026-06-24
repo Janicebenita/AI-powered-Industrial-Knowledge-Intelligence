@@ -85,6 +85,13 @@ export default function LandingPage() {
         ))}
       </section>
       <section className="mx-auto max-w-7xl px-6 py-16">
+        <div className="mb-6">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-cyan-300">Business case</p>
+          <h2 className="mt-2 text-3xl font-black">Estimated Impact Metrics</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
+            Illustrative ROI assumptions for a pilot plant, based on reduced search time, faster troubleshooting, and source-cited AI responses.
+          </p>
+        </div>
         <div className="grid gap-4 md:grid-cols-4">
           {["35% faster troubleshooting", "97% citation coverage", "418 hours saved", "$433k annual ROI"].map((item) => (
             <div key={item} className="glass rounded-2xl p-5 text-center">
