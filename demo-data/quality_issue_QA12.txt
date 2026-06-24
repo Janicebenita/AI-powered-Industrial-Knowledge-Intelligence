@@ -1,0 +1,12 @@
+# Quality Non-Conformance QA12
+Date: 2026-04-02
+Asset: HX401 Cooling Water Heat Exchanger
+
+Issue:
+Inspection report recorded corrosion under insulation and localized tube sheet pitting. Coating repair evidence was not attached before provisional return to service.
+
+Quality impact:
+Inspection non-conformance remains open. Pressure test documentation and coating repair photographs are required.
+
+Recommended action:
+Attach inspection evidence, close NCR QA12, and update heat exchanger corrosion monitoring plan.

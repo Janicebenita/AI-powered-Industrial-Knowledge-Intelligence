@@ -1,0 +1,15 @@
+# LOTO Procedure
+Procedure ID: LOTO-PLANT-A-001
+Applies to: P101, C201, EP501, B203
+
+Purpose:
+Prevent unexpected energization, startup, or release of stored energy during maintenance.
+
+Steps:
+Notify affected operators. Shut down equipment. Isolate electrical, mechanical, pneumatic, hydraulic, and process energy sources. Apply lockout tagout devices. Verify zero energy state. Document isolation points and personnel roles.
+
+EP501 electrical panel:
+Arc flash boundary and NFPA-70E controls must be reviewed before energized diagnostic work.
+
+P101 pump maintenance:
+Motor starter isolation, valve isolation, drain verification, and zero pressure confirmation are mandatory before opening casing.

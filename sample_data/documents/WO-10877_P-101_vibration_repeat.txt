@@ -1,0 +1,6 @@
+# Maintenance Work Order WO-10877
+Date: 2026-02-19
+Asset: P-101 Condensate Transfer Pump, Unit A
+Repeated vibration and seal failure observed. Operator reported intermittent cavitation noise and suction strainer fouling.
+Action: cleaned suction strainer, replaced mechanical seal, pressure tested flush line, verified alignment.
+Reliability engineer requested RCA for repeated seal failure.

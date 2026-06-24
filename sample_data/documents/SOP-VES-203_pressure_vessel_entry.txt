@@ -1,0 +1,6 @@
+# SOP-VES-203 Vessel Opening and Confined Space Entry
+Revision: 4
+Applies to: V-203 pressure vessel, Area A-3
+Before opening vessel V-203, safety officer must verify isolation blinds, gas test, confined space permit, rescue plan, and zero pressure.
+Safety hazards: confined space, stored energy, hydrogen sulfide.
+Regulatory references: OSHA-1910.146 and ASME-VIII.

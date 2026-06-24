@@ -1,0 +1,17 @@
+# Inspection Report INSP-P101-2026-02
+Date: 2026-02-20
+Asset: P101 Condensate Transfer Pump
+Location: Unit A Train 1
+Inspector: Reliability Engineer
+
+Finding:
+Pump P101 shows repeated vibration anomaly after mechanical seal replacement. Seal flush flow was below expected range during startup. Suction strainer differential pressure was elevated and operators reported cavitation noise.
+
+Process parameters:
+Suction pressure: 1.2 bar
+Discharge pressure: 8.4 bar
+Vibration: 7.8 mm/s RMS
+Seal flush flow: below OEM recommendation
+
+Recommendation:
+Inspect suction strainer, verify pump operating point, check coupling alignment, and review FlowServe P101 manual before next seal replacement.

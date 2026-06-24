@@ -1,0 +1,41 @@
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Backend runtime data
+backend/app/data/*.db
+backend/app/data/*.sqlite*
+backend/app/uploads/*
+backend/app/reports/*.pdf
+backend/storage/documents/*
+!backend/storage/documents/.gitkeep
+
+# Frontend dependencies and builds
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/dist/
+frontend/.turbo/
+frontend/.vercel/
+frontend/tsconfig.tsbuildinfo
+
+# Logs and local cache
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Generated demo media
+demo-video/

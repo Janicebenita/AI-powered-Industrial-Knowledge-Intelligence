@@ -1,0 +1,12 @@
+# Engineering Notes P101
+Asset: P101 Condensate Transfer Pump
+OEM: FlowServe
+
+Engineering review:
+Pump P101 has operated near the left side of its curve during low demand periods. This can increase recirculation, vibration, seal face instability, and cavitation risk.
+
+Observed pattern:
+Repeated seal failure occurred after periods of low suction pressure and elevated strainer differential pressure.
+
+Recommended engineering actions:
+Review minimum flow bypass sizing, validate NPSH margin, inspect impeller condition, confirm coupling alignment tolerance, and update preventive maintenance task list.

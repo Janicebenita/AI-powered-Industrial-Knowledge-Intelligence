@@ -1,0 +1,6 @@
+# Inspection Report INSP-5521
+Date: 2026-03-12
+Asset: HX-301 Cooling Water Heat Exchanger in Area CW-2
+Finding: localized corrosion and early tube leak indication on tube sheet. Severity: High.
+Recommended action: clean deposits, inspect coating, pressure tested bundle before return to service.
+Next due: 2026-09-12.

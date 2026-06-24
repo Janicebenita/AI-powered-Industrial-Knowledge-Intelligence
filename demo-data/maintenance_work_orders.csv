@@ -1,0 +1,6 @@
+work_order,asset_tag,date,role,maintenance_action,failure_mode,parts_used,status,notes
+WO-10877,P101,2026-02-19,Reliability Engineer,"Cleaned suction strainer; replaced mechanical seal; verified pump alignment","seal failure; vibration anomaly; cavitation","mechanical seal; gasket set",RCA Requested,"Repeated seal failure after high vibration alarm. Check suction pressure and seal flush."
+WO-10421,P101,2025-08-14,Maintenance Technician,"Replaced mechanical seal; lubricated bearing; aligned coupling","seal failure; bearing overheating","mechanical seal; bearing kit",Closed,"Possible shaft misalignment after outage."
+WO-7712,C201,2026-01-27,Compressor Specialist,"Replaced oil filter; inspected bearing; calibrated pressure switch","bearing overheating; oil contamination","filter element; bearing kit",Closed,"TRIP-OIL-LOW caused compressor shutdown."
+WO-6631,HX401,2026-03-12,Inspection Engineer,"Cleaned deposits; pressure tested bundle; marked tube sheet corrosion","corrosion under insulation; tube leak","gasket set",Open,"Pressure test follow-up required before next turnaround."
+WO-5520,EP501,2026-06-18,Electrical Technician,"Inspected feeder breaker; torqued lugs; cleaned ventilation filter","breaker trip; arc flash label outdated","filter element",Evidence Missing,"NFPA-70E label update and energized work procedure attachment required."

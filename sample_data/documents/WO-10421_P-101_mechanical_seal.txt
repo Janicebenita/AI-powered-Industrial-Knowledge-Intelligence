@@ -1,0 +1,7 @@
+# Maintenance Work Order WO-10421
+Date: 2025-08-14
+Asset: P-101 Condensate Transfer Pump in Unit A
+Technician recorded high vibration and seal failure on P-101. ALM-VIB-HI was active for 4 hours.
+Action: isolated pump, replaced mechanical seal, aligned coupling, lubricated bearing kit, verified seal flush.
+Root cause note: possible shaft misalignment after prior outage and low suction pressure causing cavitation.
+Spare parts: mechanical seal, bearing kit, gasket set.

@@ -1,0 +1,6 @@
+# SOP-MECH-014 Pump Isolation and Seal Replacement
+Revision: 7
+Applies to: P-101, P-102 and centrifugal process pumps
+Before opening pump casing, technician must lock out stored energy, drain process fluid, verify zero pressure, and confirm seal flush isolation.
+Safety hazards: line break, stored energy, hot work when coupling guard modification is required.
+Regulatory references: OSHA-1910.147 and ISO-14224.
