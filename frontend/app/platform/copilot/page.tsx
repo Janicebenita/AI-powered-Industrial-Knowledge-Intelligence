@@ -148,7 +148,10 @@ function buildAnswerSection({
   response: CopilotResponse | null;
   fallback: StaticAnswer;
 }): AnswerSection {
-  const relatedAssets = response?.related_assets?.length
+  const insufficient = response?.evidence_strength === "insufficient" || citations.length === 0;
+  const relatedAssets = insufficient
+    ? []
+    : response?.related_assets?.length
     ? response.related_assets
     : fallback.context.filter((item) => /\b(P|C|B|HX|V|EP)-?\d{3}\b|P101|V203|EP501|HX401|C201|B203/i.test(item));
   const evidence = citations.length
@@ -156,7 +159,7 @@ function buildAnswerSection({
     : ["No source citation was returned. Ask a narrower question or upload the missing evidence document."];
 
   return {
-    recommendedSop: inferRecommendedSop(question, answerText, citations.map((citation) => citation.title)),
+    recommendedSop: insufficient ? "Not available from cited evidence" : inferRecommendedSop(question, answerText, citations.map((citation) => citation.title)),
     reason: answerText,
     evidence,
     relatedAssets: relatedAssets.length ? relatedAssets : ["No specific related asset detected"],
@@ -197,11 +200,10 @@ function StructuredAnswer({ section }: { section: AnswerSection }) {
 
 export default function CopilotPage() {
   const [question, setQuestion] = useState("Why has Pump P101 failed repeatedly?");
-  const [asked, setAsked] = useState(true);
+  const [asked, setAsked] = useState(false);
   const [response, setResponse] = useState<CopilotResponse | null>(null);
   const [isAsking, setIsAsking] = useState(false);
   const [error, setError] = useState("");
-  const fallback = getFallbackAnswer(question);
 
   async function askCopilot(nextQuestion = question) {
     const trimmed = nextQuestion.trim();
@@ -236,7 +238,7 @@ export default function CopilotPage() {
     }
   }
 
-  const answerText = response?.direct_answer ?? fallback.answer;
+  const answerText = response?.direct_answer ?? "";
   const citations = response?.citations?.length
     ? response.citations.map((citation, index) => ({
         id: `${citation.document_id}-${citation.chunk_id}-${index}`,
@@ -245,17 +247,19 @@ export default function CopilotPage() {
         confidence: confidencePercent(citation.confidence),
         quote: citation.quote
       }))
-    : fallback.citations.map((citation, index) => ({ ...citation, id: `fallback-${index}` }));
-  const confidence = response ? `${confidencePercent(response.confidence)}%` : fallback.confidence;
-  const evidence = response ? response.evidence_strength : fallback.evidence;
-  const structuredAnswer = buildAnswerSection({ question, answerText, citations, confidence, response, fallback });
+    : [];
+  const confidence = response ? `${confidencePercent(response.confidence)}%` : "0%";
+  const evidence = response ? response.evidence_strength : "No question asked";
+  const structuredAnswer = response
+    ? buildAnswerSection({ question, answerText, citations, confidence, response, fallback: getFallbackAnswer(question) })
+    : null;
   const context = response
     ? [
         ...(response.related_assets.length ? response.related_assets.map((asset) => `Asset ${asset}`) : ["No specific asset detected"]),
         ...(response.related_documents.length ? response.related_documents.slice(0, 4) : ["No related documents returned"]),
         ...response.suggested_next_actions.slice(0, 3)
       ]
-    : fallback.context;
+    : ["Ask a question to retrieve cited plant evidence."];
 
   return (
     <div className="grid min-w-0 gap-5 xl:grid-cols-[260px_minmax(0,1fr)] 2xl:grid-cols-[260px_minmax(0,1fr)_300px]">
@@ -316,8 +320,12 @@ export default function CopilotPage() {
                 </div>
               ) : isAsking ? (
                 <p className="break-words text-lg leading-8 text-slate-100">Retrieving relevant uploaded document chunks...</p>
-              ) : (
+              ) : structuredAnswer ? (
                 <StructuredAnswer section={structuredAnswer} />
+              ) : (
+                <p className="break-words text-lg leading-8 text-slate-100">
+                  Ask a question to search indexed documents. The copilot will decline if it cannot find cited evidence.
+                </p>
               )}
             </div>
           ) : null}
