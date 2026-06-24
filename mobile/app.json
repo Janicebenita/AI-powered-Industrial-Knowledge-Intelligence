@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Industrial Brain AI",
+    "slug": "industrial-brain-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "industrialbrain",
+    "userInterfaceStyle": "dark",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.industrialbrain.ai"
+    },
+    "android": {
+      "package": "com.industrialbrain.ai",
+      "adaptiveIcon": {
+        "backgroundColor": "#050816"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "extra": {
+      "apiUrl": "http://127.0.0.1:8000"
+    }
+  }
+}

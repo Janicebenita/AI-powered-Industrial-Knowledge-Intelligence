@@ -37,7 +37,10 @@ def _citations(answer_id: str, evidence: list[dict[str, Any]]) -> list[dict[str,
 
 def ask_copilot(question: str, user_role: str = "maintenance") -> dict[str, Any]:
     answer_id = str(uuid.uuid4())
-    evidence = retrieve(question)
+    asset_tags = sorted({_normalize_asset_tag(tag) for tag in ASSET_RE.findall(question)})
+    evidence = retrieve(question, limit=24 if asset_tags else 6)
+    if asset_tags:
+        evidence = _asset_specific_evidence(evidence, asset_tags)
     if not evidence_is_sufficient(evidence):
         return {
             "answer_id": answer_id,
@@ -51,7 +54,6 @@ def ask_copilot(question: str, user_role: str = "maintenance") -> dict[str, Any]
         }
 
     question_lower = question.lower()
-    asset_tags = sorted({_normalize_asset_tag(tag) for tag in ASSET_RE.findall(question)})
     direct = "Based on cited plant records, "
     actions = ["Review cited documents before field execution.", "Confirm current asset condition in the CMMS before approving work."]
 
@@ -100,6 +102,21 @@ def _first_asset_from_evidence(evidence: list[dict[str, Any]]) -> str | None:
         if found:
             return _normalize_asset_tag(found[0])
     return None
+
+
+def _asset_specific_evidence(evidence: list[dict[str, Any]], asset_tags: list[str]) -> list[dict[str, Any]]:
+    variants = set()
+    for tag in asset_tags:
+        variants.add(tag.lower())
+        variants.add(tag.replace("-", "").lower())
+
+    filtered = []
+    for item in evidence:
+        source_text = f"{item.get('filename', '')} {item.get('text', '')}".lower()
+        compact_source_text = source_text.replace("-", "")
+        if any(variant in source_text or variant in compact_source_text for variant in variants):
+            filtered.append(item)
+    return filtered
 
 
 def _normalize_asset_tag(tag: str) -> str:
