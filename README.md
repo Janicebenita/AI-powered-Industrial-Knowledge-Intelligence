@@ -33,9 +33,23 @@ Industrial Brain AI reduces downtime, accelerates root cause analysis, improves 
 
 **Problem Statement #8**
 
-**AI for Industrial Knowledge Intelligence: Unified Asset & Operations Brain**
+## Problem Statement Alignment
 
-Industrial Brain AI addresses the challenge of fragmented industrial knowledge by unifying engineering documents, maintenance records, inspection reports, SOPs, compliance evidence, and operational history into a single AI-powered intelligence platform featuring Knowledge Graphs, RAG-based Copilot, Asset Intelligence, RCA Automation, Compliance Intelligence, and Lessons Learned Analytics.
+**Industrial Brain AI directly addresses PS 8: AI for Industrial Knowledge Intelligence - Unified Asset & Operations Brain.**
+
+Industrial organizations often store critical operational knowledge across disconnected maintenance logs, SOPs, inspection reports, compliance records, incident reports, and asset histories. This fragmentation delays root cause analysis, increases downtime, weakens audit readiness, and causes loss of engineering knowledge.
+
+Industrial Brain AI solves this by creating a unified asset and operations brain that combines:
+
+- Source-cited RAG for industrial document intelligence
+- Knowledge graph mapping across assets, failures, SOPs, risks, and compliance records
+- Asset 360 intelligence profiles
+- Automated root cause analysis
+- Compliance evidence discovery
+- Lessons learned analytics
+- Executive operational visibility
+
+The platform enables plant managers, reliability engineers, maintenance teams, and auditors to make faster, safer, and evidence-backed decisions.
 
 ---
 ## 🚀 Overview
