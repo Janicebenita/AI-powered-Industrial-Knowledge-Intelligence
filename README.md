@@ -366,16 +366,20 @@ demo-data/
 
 ## 🔮 Roadmap
 
-- Predictive failure models
-- Digital twin integration
-- SAP integration
-- SCADA integration
-- Real-time sensor intelligence
-- Industrial LLM fine-tuning
-- Advanced reliability analytics
-- Autonomous industrial agents
+- 🔗 CMMS integration with SAP PM, Maximo, and maintenance systems
+- 📡 SCADA and IoT sensor data integration
+- 📈 Predictive failure risk scoring
+- 🏭 Digital twin integration for asset simulation
+- 🕸️ Plant-level and enterprise-level knowledge graphs
+- 🧠 Fine-tuned industrial language models
+- 📱 Mobile field engineer assistant
+- 🎙️ Voice-based maintenance copilot
+- 📋 Automated audit report generation
+- ⚡ Real-time anomaly and risk intelligence
 
----
+## 🌟 Vision
+
+Industrial Brain AI aims to become the trusted intelligence layer for industrial operations, helping plants convert fragmented operational knowledge into safer decisions, faster investigations, stronger compliance, and measurable reliability improvement.
 
 ## 🛡 Safety Behavior
 
