@@ -121,13 +121,15 @@ auditor@industrial.ai / demo123
 
 ## 💬 Demo Questions
 
-```text
-Why has Pump P101 failed repeatedly?
-Show complete maintenance history of Pump P101.
-Which assets have overdue inspections?
-Generate RCA for Compressor C201.
-What recurring safety risks exist in the plant?
-```
+1. Why has Pump P101 failed repeatedly in the last six months?
+2. Generate a root cause analysis for Compressor C201.
+3. Which assets have overdue inspections or compliance gaps?
+4. What safety risks are recurring across the plant?
+5. Show the complete Asset 360 profile for Pump P101.
+6. Which SOP applies to compressor overheating?
+7. What lessons were learned from previous pump seal failures?
+8. What evidence supports the recommended preventive action?
+
 
 ## 🧠 Architecture
 
