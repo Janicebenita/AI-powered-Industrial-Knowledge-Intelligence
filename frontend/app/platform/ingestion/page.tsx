@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { ChangeEvent, DragEvent, useRef, useState } from "react";
-import { CheckCircle2, FileUp, Loader2, RotateCcw, XCircle } from "lucide-react";
+import { CheckCircle2, FileText, FileUp, Loader2, RotateCcw, XCircle } from "lucide-react";
 import { GlassCard, MetricCard } from "@/components/platform/cards";
 import { ProcessingTimeline } from "@/components/platform/processing-timeline";
 import { ConfidenceBadge, SeverityBadge } from "@/components/platform/badges";
@@ -149,6 +149,29 @@ export default function IngestionPage() {
         <ProcessingTimeline steps={pipeline} />
       </GlassCard>
       <GlassCard className="xl:col-span-2">
+        <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="font-semibold">Judge Evidence Pack</h2>
+            <p className="mt-1 text-sm text-slate-400">Use these sample records to prove the platform handles execution, quality, compliance, and scanned document intelligence.</p>
+          </div>
+          <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold text-cyan-200">5 evidence classes</span>
+        </div>
+        <div className="mb-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {[
+            ["Method Statement", "07_ConstructionMethodsStatements.pdf", "Construction controls and execution methodology"],
+            ["Scanned NCR", "NCR_calibration_nonconformity.jpg", "Machine-shop calibration nonconformity"],
+            ["OCR Companion", "NCR_calibration_nonconformity.txt", "ISO 9001 clause and corrective action evidence"],
+            ["QA/QC Manual", "QA_QC_Manual_Appendix_Part_2.pdf", "Quality inspection and test controls"],
+            ["Tender", "Tender_document.pdf", "Scope, obligations, deliverables, and contractual evidence"]
+          ].map(([kind, name, description]) => (
+            <div key={name} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+              <FileText className="mb-3 text-cyan-300" size={20} />
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{kind}</p>
+              <h3 className="mt-2 break-words text-sm font-bold text-white">{name}</h3>
+              <p className="mt-2 text-xs leading-5 text-slate-400">{description}</p>
+            </div>
+          ))}
+        </div>
         <h2 className="mb-4 font-semibold">Document Queue</h2>
         {uploadQueue.length > 0 && (
           <div className="mb-5 grid gap-3 lg:grid-cols-2">
@@ -160,7 +183,7 @@ export default function IngestionPage() {
                     <p className="mt-1 text-sm text-slate-400">{doc.message}</p>
                     {doc.status === "processed" && (
                       <p className="mt-2 text-xs text-cyan-200">
-                        {doc.docType} · {doc.chunks} chunks · {doc.entities} entities
+                        {doc.docType} - {doc.chunks} chunks - {doc.entities} entities
                       </p>
                     )}
                   </div>
@@ -198,3 +221,7 @@ export default function IngestionPage() {
     </div>
   );
 }
+
+
+
+

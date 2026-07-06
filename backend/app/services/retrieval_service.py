@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from typing import Any
 
@@ -38,10 +38,14 @@ STOPWORDS = {
 }
 
 
+def signal_terms(text: str) -> set[str]:
+    return {token for token in set(tokenize(text)) if token not in STOPWORDS and len(token) > 2}
+
+
 def retrieve(question: str, limit: int = 6) -> list[dict[str, Any]]:
     q_emb = embed_text(question)
     q_tokens = set(tokenize(question))
-    q_signal_tokens = {token for token in q_tokens if token not in STOPWORDS and len(token) > 2}
+    q_signal_tokens = signal_terms(question)
     rows = query(
         """
         SELECT c.id AS chunk_id, c.document_id, c.page_number, c.section, c.text, c.embedding,
@@ -70,3 +74,4 @@ def evidence_is_sufficient(results: list[dict[str, Any]], threshold: float = 0.0
         return False
     top = results[0]
     return top["score"] >= threshold and top.get("token_overlap", 0) >= overlap_threshold
+

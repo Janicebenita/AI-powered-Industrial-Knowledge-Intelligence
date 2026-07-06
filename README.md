@@ -33,39 +33,10 @@ Industrial Brain AI reduces downtime, accelerates root cause analysis, improves 
 
 **Problem Statement #8**
 
-## Problem Statement Alignment
+**AI for Industrial Knowledge Intelligence: Unified Asset & Operations Brain**
 
-**Industrial Brain AI directly addresses PS 8: AI for Industrial Knowledge Intelligence - Unified Asset & Operations Brain.**
+Industrial Brain AI addresses the challenge of fragmented industrial knowledge by unifying engineering documents, maintenance records, inspection reports, SOPs, compliance evidence, and operational history into a single AI-powered intelligence platform featuring Knowledge Graphs, RAG-based Copilot, Asset Intelligence, RCA Automation, Compliance Intelligence, and Lessons Learned Analytics.
 
-Industrial organizations often store critical operational knowledge across disconnected maintenance logs, SOPs, inspection reports, compliance records, incident reports, and asset histories. This fragmentation delays root cause analysis, increases downtime, weakens audit readiness, and causes loss of engineering knowledge.
-
-Industrial Brain AI solves this by creating a unified asset and operations brain that combines:
-
-- Source-cited RAG for industrial document intelligence
-- Knowledge graph mapping across assets, failures, SOPs, risks, and compliance records
-- Asset 360 intelligence profiles
-- Automated root cause analysis
-- Compliance evidence discovery
-- Lessons learned analytics
-- Executive operational visibility
-
-The platform enables plant managers, reliability engineers, maintenance teams, and auditors to make faster, safer, and evidence-backed decisions.
-
----
-## 🤖 Why This Is Not Just a Chatbot
-
-Industrial Brain AI is not a generic document chatbot. It is an industrial operations intelligence system designed around assets, failures, compliance, and plant workflows.
-
-Unlike a basic chatbot, Industrial Brain AI:
-
-- Connects every answer to source evidence
-- Links documents, assets, failures, SOPs, risks, and compliance records through a knowledge graph
-- Builds Asset 360 intelligence profiles
-- Generates structured root cause analysis
-- Identifies compliance gaps and missing evidence
-- Preserves lessons learned from past failures
-- Provides role-based insights for plant managers, reliability engineers, and auditors
-- Refuses unsupported answers when evidence is insufficient
 ---
 ## 🚀 Overview
 
@@ -121,20 +92,15 @@ auditor@industrial.ai / demo123
 
 ## 💬 Demo Questions
 
-1. Why has Pump P101 failed repeatedly in the last six months?
-2. Generate a root cause analysis for Compressor C201.
-3. Which assets have overdue inspections or compliance gaps?
-4. What safety risks are recurring across the plant?
-5. Show the complete Asset 360 profile for Pump P101.
-6. Which SOP applies to compressor overheating?
-7. What lessons were learned from previous pump seal failures?
-8. What evidence supports the recommended preventive action?
-
+```text
+Why has Pump P101 failed repeatedly?
+Show complete maintenance history of Pump P101.
+Which assets have overdue inspections?
+Generate RCA for Compressor C201.
+What recurring safety risks exist in the plant?
+```
 
 ## 🧠 Architecture
-
-Industrial Brain AI uses a layered intelligence architecture that combines document ingestion, entity extraction, vector search, knowledge graphs, multi-agent reasoning, and evidence-backed response generation.
-
 
 ```mermaid
 flowchart TD
@@ -332,15 +298,12 @@ demo-data/
 | `demo-data/` | Realistic industrial dataset with asset registers, maintenance logs, inspection reports, SOPs, incidents, safety checklists, manuals, and compliance records |
 
 ## 📈 Business Impact
-
 | Impact Area | Improvement |
-|---|---:|
+|---|---|
 | 🔍 Investigation Time | 70% Faster |
 | 🧠 Knowledge Search | 90% Faster |
 | 📋 Compliance Readiness | 60% Higher |
 | 📊 Operational Visibility | 80% Improved |
-| ⚙️ RCA Generation | 70% Faster |
-| 🛡️ Audit Evidence Discovery | 60% Faster |
 
 ### Key Outcomes
 
@@ -352,34 +315,28 @@ demo-data/
 - ✅ Higher engineering productivity
 ## 🏆 Hackathon Advantages
 
-| Advantage | How Industrial Brain AI Stands Out |
-|---|---|
-| 🧠 Innovation | Combines RAG, knowledge graphs, RCA automation, compliance intelligence, and lessons learned analytics |
-| 🎯 Problem Fit | Directly solves PS 8 by creating a unified asset and operations brain |
-| ⚙️ Technical Depth | Full-stack implementation with FastAPI, Next.js, vector search, RBAC, AI agents, and graph intelligence |
-| 📈 Practical Impact | Reduces downtime, accelerates RCA, improves audit readiness, and preserves industrial knowledge |
-| 🔎 Explainability | Every AI response is source-cited and evidence-backed |
-| 🚀 Scalability | Designed for multi-plant, multi-role, enterprise industrial environments |
-| 🎥 Demo Readiness | Includes realistic industrial assets, demo data, guided questions, and live deployment |
+- 🧠 Multi-agent industrial AI architecture
+- 🕸 Knowledge graph powered operational intelligence
+- 🔎 Source-cited explainable answers
+- 📋 Compliance and audit evidence generation
+- ⚠️ Root cause analysis automation
+- 🏭 Realistic industrial demo dataset
+- 🚀 Enterprise-ready full-stack implementation
 
 ---
 
 ## 🔮 Roadmap
 
-- 🔗 CMMS integration with SAP PM, Maximo, and maintenance systems
-- 📡 SCADA and IoT sensor data integration
-- 📈 Predictive failure risk scoring
-- 🏭 Digital twin integration for asset simulation
-- 🕸️ Plant-level and enterprise-level knowledge graphs
-- 🧠 Fine-tuned industrial language models
-- 📱 Mobile field engineer assistant
-- 🎙️ Voice-based maintenance copilot
-- 📋 Automated audit report generation
-- ⚡ Real-time anomaly and risk intelligence
+- Predictive failure models
+- Digital twin integration
+- SAP integration
+- SCADA integration
+- Real-time sensor intelligence
+- Industrial LLM fine-tuning
+- Advanced reliability analytics
+- Autonomous industrial agents
 
-## 🌟 Vision
-
-Industrial Brain AI aims to become the trusted intelligence layer for industrial operations, helping plants convert fragmented operational knowledge into safer decisions, faster investigations, stronger compliance, and measurable reliability improvement.
+---
 
 ## 🛡 Safety Behavior
 

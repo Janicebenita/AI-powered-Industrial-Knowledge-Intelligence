@@ -1,12 +1,13 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import re
 import uuid
+from datetime import date
 from typing import Any
 
 from app.database import connect, query
 from app.services.maintenance_service import asset_360, rca_for_asset
-from app.services.retrieval_service import evidence_is_sufficient, retrieve
+from app.services.retrieval_service import evidence_is_sufficient, retrieve, signal_terms
 
 ASSET_RE = re.compile(r"\b(?:P|C|B|HX|V|EP)-?\d{3}\b")
 
@@ -37,26 +38,22 @@ def _citations(answer_id: str, evidence: list[dict[str, Any]]) -> list[dict[str,
 
 def ask_copilot(question: str, user_role: str = "maintenance") -> dict[str, Any]:
     answer_id = str(uuid.uuid4())
+    question_lower = question.lower()
     asset_tags = sorted({_normalize_asset_tag(tag) for tag in ASSET_RE.findall(question)})
+
+    if _asks_overdue_inspections(question_lower):
+        return _overdue_inspection_answer(answer_id)
+
     evidence = retrieve(question, limit=24 if asset_tags else 6)
     if asset_tags:
         evidence = _asset_specific_evidence(evidence, asset_tags)
-    if not evidence_is_sufficient(evidence):
-        return {
-            "answer_id": answer_id,
-            "direct_answer": "I don't know from the available evidence. No sufficiently relevant source chunk was found, so I will not infer an operational or compliance answer.",
-            "confidence": 0.12,
-            "citations": [],
-            "related_assets": [],
-            "related_documents": [],
-            "suggested_next_actions": ["Upload the missing SOP, inspection record, work order, or checklist evidence.", "Ask a narrower question with an asset tag or document type."],
-            "evidence_strength": "insufficient",
-        }
+    refusal = _refusal_if_weak(question, evidence, asset_tags)
+    if refusal:
+        refusal["answer_id"] = answer_id
+        return refusal
 
-    question_lower = question.lower()
     direct = "Based on cited plant records, "
     actions = ["Review cited documents before field execution.", "Confirm current asset condition in the CMMS before approving work."]
-
     if "why" in question_lower or "root cause" in question_lower or "rca" in question_lower:
         asset = asset_tags[0] if asset_tags else _first_asset_from_evidence(evidence)
         rca = rca_for_asset(asset) if asset else None
@@ -96,6 +93,69 @@ def ask_copilot(question: str, user_role: str = "maintenance") -> dict[str, Any]
     }
 
 
+
+def _overdue_inspection_answer(answer_id: str) -> dict[str, Any]:
+    today = date.today().isoformat()
+    rows = query(
+        """
+        SELECT i.inspection_id, i.asset_tag, i.finding, i.severity, i.next_due, i.document_id,
+               d.filename, d.doc_type
+        FROM inspections i
+        LEFT JOIN documents d ON d.id = i.document_id
+        WHERE i.next_due <= ?
+           OR lower(i.finding) LIKE '%overdue%'
+           OR lower(i.finding) LIKE '%missing%'
+           OR lower(i.finding) LIKE '%required%'
+        ORDER BY i.next_due ASC, i.severity DESC
+        LIMIT 8
+        """,
+        (today,),
+    )
+    if not rows:
+        refusal = _insufficient_response("The inspection register has no overdue, due, missing, or required inspection evidence.")
+        refusal["answer_id"] = answer_id
+        return refusal
+
+    citations: list[dict[str, Any]] = []
+    cited_documents: set[str] = set()
+    assets: list[str] = []
+    findings: list[str] = []
+    for row in rows:
+        asset = _normalize_asset_tag(row["asset_tag"])
+        assets.append(asset)
+        status = "overdue" if row["next_due"] and row["next_due"] < today else "due now"
+        if "missing" in row["finding"].lower():
+            status = "missing evidence"
+        findings.append(f"{asset}: {status}; {row['severity']} severity; {row['finding']} (next due {row['next_due']}).")
+        filename = row["filename"] or "Inspection Register"
+        cited_documents.add(filename)
+        citations.append(
+            {
+                "document_id": row["document_id"] or 0,
+                "chunk_id": 0,
+                "filename": filename,
+                "page_number": 1,
+                "section": row["inspection_id"],
+                "quote": f"{row['inspection_id']} | Asset {asset} | Finding: {row['finding']} | Next due: {row['next_due']} | Severity: {row['severity']}",
+                "confidence": 0.91 if row["document_id"] else 0.84,
+            }
+        )
+
+    direct = "Based on cited inspection-register evidence, the assets with overdue, due-now, or missing inspection evidence are: " + " ".join(findings)
+    return {
+        "answer_id": answer_id,
+        "direct_answer": direct,
+        "confidence": 0.84,
+        "citations": citations[:4],
+        "related_assets": sorted(set(assets)),
+        "related_documents": sorted(cited_documents),
+        "suggested_next_actions": [
+            "Attach the missing inspection certificates or pressure-test evidence to the asset record.",
+            "Assign an inspection owner and due date for each high-severity asset.",
+            "Rerun compliance mapping after evidence is uploaded.",
+        ],
+        "evidence_strength": "strong" if any(c["filename"] != "Inspection Register" for c in citations) else "moderate",
+    }
 def _first_asset_from_evidence(evidence: list[dict[str, Any]]) -> str | None:
     for item in evidence:
         found = ASSET_RE.findall(item["text"])
@@ -124,3 +184,54 @@ def _normalize_asset_tag(tag: str) -> str:
     if not match:
         return tag
     return f"{match.group(1)}-{match.group(2)}"
+
+def _asks_overdue_inspections(question_lower: str) -> bool:
+    return ("overdue" in question_lower or "due" in question_lower or "expired" in question_lower or "missing" in question_lower) and ("inspection" in question_lower or "inspections" in question_lower or "assets" in question_lower)
+
+
+def _overdue_inspection_evidence(evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    filtered = []
+    for item in evidence:
+        text = f"{item.get('filename', '')} {item.get('section', '')} {item.get('text', '')}".lower()
+        has_inspection_context = any(term in text for term in ["inspection", "checklist", "evidence", "certificate", "pressure test"])
+        has_gap_context = any(term in text for term in ["overdue", "missing", "partial", "due", "gap", "not covered"])
+        has_asset = bool(ASSET_RE.search(text))
+        if has_inspection_context and has_gap_context and has_asset:
+            filtered.append(item)
+    return filtered
+
+
+def _refusal_if_weak(question: str, evidence: list[dict[str, Any]], asset_tags: list[str]) -> dict[str, Any] | None:
+    if not evidence_is_sufficient(evidence):
+        return _insufficient_response("No sufficiently relevant source chunk was found.")
+
+    q_terms = signal_terms(question)
+    if asset_tags and not evidence:
+        return _insufficient_response("No citation mentions the requested asset tag.")
+
+    if q_terms:
+        top_matches = set()
+        for item in evidence[:4]:
+            top_matches.update(item.get("matched_terms", []))
+        required = {term for term in q_terms if term not in {"asset", "assets", "plant", "show", "generate"}}
+        matched_required = required & top_matches
+        if len(required) >= 3 and len(matched_required) < 2:
+            return _insufficient_response("The retrieved citations do not match enough of the question-specific terms.")
+        if "overdue" in required and "overdue" not in matched_required and "missing" not in top_matches and "due" not in top_matches:
+            return _insufficient_response("No citation supports an overdue or missing inspection finding.")
+
+    return None
+
+
+def _insufficient_response(reason: str) -> dict[str, Any]:
+    return {
+        "answer_id": "",
+        "direct_answer": f"I don't know from the available cited evidence. {reason} I will not infer an operational, safety, quality, or compliance answer without matching source documents.",
+        "confidence": 0.12,
+        "citations": [],
+        "related_assets": [],
+        "related_documents": [],
+        "suggested_next_actions": ["Upload or select the exact SOP, inspection record, NCR, QA/QC manual section, tender clause, or work order evidence.", "Ask a narrower question with an asset tag, document name, or compliance clause."],
+        "evidence_strength": "insufficient",
+    }
+

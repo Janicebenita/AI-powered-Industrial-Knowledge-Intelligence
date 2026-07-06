@@ -1,30 +1,42 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  background: #050816;
-  color: #ffffff;
+  --bg: #050816;
+  --bg-soft: #08111f;
+  --panel: rgba(255, 255, 255, 0.075);
+  --panel-strong: rgba(15, 23, 42, 0.78);
+  --border: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(125, 211, 252, 0.28);
+  --text: #ffffff;
+  --muted: #94a3b8;
+  --blue: #3b82f6;
+  --cyan: #06b6d4;
+  --green: #22c55e;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --purple: #8b5cf6;
+  background: var(--bg);
+  color: var(--text);
   color-scheme: dark;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 10% 10%, rgba(59, 130, 246, 0.18), transparent 30%),
-    radial-gradient(circle at 90% 15%, rgba(6, 182, 212, 0.16), transparent 32%),
-    linear-gradient(135deg, #050816 0%, #0b1024 45%, #07111f 100%);
-  color: #ffffff;
+    radial-gradient(circle at 16% 8%, rgba(59, 130, 246, 0.2), transparent 28%),
+    radial-gradient(circle at 84% 10%, rgba(6, 182, 212, 0.16), transparent 30%),
+    radial-gradient(circle at 70% 78%, rgba(34, 197, 94, 0.08), transparent 32%),
+    linear-gradient(135deg, #050816 0%, #08111f 42%, #06131f 100%);
+  color: var(--text);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-rendering: optimizeLegibility;
 }
 
 body::before {
@@ -33,29 +45,47 @@ body::before {
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(148, 163, 184, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.2));
+    linear-gradient(rgba(148, 163, 184, 0.065) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.065) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.92), rgba(0,0,0,0.18));
 }
 
-button, input, select, textarea {
-  font: inherit;
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.035), transparent 18%, rgba(0,0,0,0.18));
 }
+
+button, input, select, textarea { font: inherit; }
+
+button, a, input, select, textarea { outline: none; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.38);
+}
+
+::selection { background: rgba(6, 182, 212, 0.35); }
 
 .glass {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(18px);
+  background: linear-gradient(145deg, rgba(255,255,255,0.095), rgba(255,255,255,0.045));
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px);
 }
 
-.glow {
-  box-shadow: 0 0 40px rgba(59, 130, 246, 0.28);
+.command-panel {
+  background: linear-gradient(145deg, rgba(15,23,42,0.88), rgba(8,17,31,0.72));
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 26px 90px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.07);
+  backdrop-filter: blur(22px);
 }
+
+.glow { box-shadow: 0 0 42px rgba(59, 130, 246, 0.3); }
 
 .gradient-text {
-  background: linear-gradient(90deg, #ffffff, #93c5fd, #67e8f9);
+  background: linear-gradient(90deg, #ffffff, #bfdbfe, #67e8f9);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -63,22 +93,18 @@ button, input, select, textarea {
 
 .grid-pattern {
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    linear-gradient(rgba(255,255,255,0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.055) 1px, transparent 1px);
   background-size: 44px 44px;
 }
 
-.scanline {
-  position: relative;
-  overflow: hidden;
-}
-
+.scanline { position: relative; overflow: hidden; }
 .scanline::after {
   content: "";
   position: absolute;
   inset: 0;
   transform: translateX(-120%);
-  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.16), transparent);
+  background: linear-gradient(90deg, transparent, rgba(6,182,212,0.14), transparent);
   animation: scan 5s linear infinite;
 }
 
@@ -87,11 +113,8 @@ button, input, select, textarea {
   60%, 100% { transform: translateX(120%); }
 }
 
-.thin-scrollbar {
-  scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
-  scrollbar-width: thin;
-}
+.thin-scrollbar { scrollbar-color: rgba(148, 163, 184, 0.5) transparent; scrollbar-width: thin; }
+.thin-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+.thin-scrollbar::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.35); border-radius: 999px; }
 
-.react-flow__node {
-  border-radius: 10px;
-}
+.react-flow__node { border-radius: 12px; }

@@ -1,16 +1,11 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
-import { AlertTriangle, Bot, Loader2, Radio, Send, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { AlertTriangle, Bot, CheckCircle2, FileSearch, Loader2, Radio, Send, ShieldCheck, Sparkles } from "lucide-react";
 import { GlassCard, MetricCard } from "@/components/platform/cards";
 import { CitationCard } from "@/components/platform/citation-card";
-
-const suggested = [
-  "Why has Pump P101 failed repeatedly?",
-  "Which SOP applies before opening vessel V203?",
-  "What should a field technician check first?",
-  "Which regulatory requirements are not covered?"
-];
+import { demoQuestions } from "@/lib/demo-data";
 
 type StaticAnswer = {
   match: string[];
@@ -184,9 +179,7 @@ function StructuredAnswer({ section }: { section: AnswerSection }) {
           {row.list ? (
             <div className="grid gap-2">
               {row.list.map((item, index) => (
-                <p key={`${row.label}-${index}`} className="break-words text-sm leading-6 text-slate-100">
-                  {item}
-                </p>
+                <p key={`${row.label}-${index}`} className="break-words text-sm leading-6 text-slate-100">{item}</p>
               ))}
             </div>
           ) : (
@@ -197,13 +190,38 @@ function StructuredAnswer({ section }: { section: AnswerSection }) {
     </div>
   );
 }
+function InsufficientEvidencePanel({ answer, actions }: { answer: string; actions: string[] }) {
+  return (
+    <div className="rounded-2xl border border-amber-300/35 bg-amber-400/[0.08] p-5 shadow-[0_0_32px_rgba(245,158,11,0.12)]">
+      <div className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-[0.14em] text-amber-200">
+        <AlertTriangle size={17} /> Insufficient cited evidence
+      </div>
+      <p className="break-words text-base leading-7 text-slate-100">{answer}</p>
+      <div className="mt-4 grid gap-2">
+        {actions.map((action) => (
+          <div key={action} className="rounded-xl border border-amber-200/15 bg-black/20 p-3 text-sm text-amber-50/90">
+            {action}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function CopilotPage() {
+  const searchParams = useSearchParams();
   const [question, setQuestion] = useState("Why has Pump P101 failed repeatedly?");
   const [asked, setAsked] = useState(false);
   const [response, setResponse] = useState<CopilotResponse | null>(null);
   const [isAsking, setIsAsking] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const queryQuestion = searchParams.get("question");
+    if (queryQuestion && !asked && !isAsking) {
+      void askCopilot(queryQuestion);
+    }
+  }, [searchParams, asked, isAsking]);
 
   async function askCopilot(nextQuestion = question) {
     const trimmed = nextQuestion.trim();
@@ -262,23 +280,24 @@ export default function CopilotPage() {
     : ["Ask a question to retrieve cited plant evidence."];
 
   return (
-    <div className="grid min-w-0 gap-5 xl:grid-cols-[260px_minmax(0,1fr)] 2xl:grid-cols-[260px_minmax(0,1fr)_300px]">
+    <div className="grid min-w-0 gap-5 xl:grid-cols-[300px_minmax(0,1fr)] 2xl:grid-cols-[300px_minmax(0,1fr)_330px]">
       <GlassCard>
         <h2 className="mb-4 font-semibold">Conversation History</h2>
-        {suggested.map((item) => (
+        {demoQuestions.map(({ category, question: item }) => (
           <button
             key={item}
             onClick={() => {
               void askCopilot(item);
             }}
-            className="mb-2 w-full rounded-xl border border-white/10 bg-white/[0.05] p-3 text-left text-sm text-slate-300 transition hover:bg-white/[0.09]"
+            className="mb-2 w-full rounded-xl border border-white/10 bg-white/[0.05] p-3 text-left text-sm text-slate-300 transition hover:border-cyan-300/30 hover:bg-white/[0.09]"
           >
-            {item}
+            <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-300">{category}</span>
+            <span>{item}</span>
           </button>
         ))}
       </GlassCard>
       <section className="grid min-w-0 gap-4">
-        <GlassCard className="min-h-[560px]">
+        <GlassCard className="command-panel min-h-[600px]">
           <div className="mb-5 flex min-w-0 items-center gap-3">
             <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-blue-500/20 text-cyan-200"><Bot /></div>
             <div className="min-w-0">
@@ -286,7 +305,7 @@ export default function CopilotPage() {
               <p className="break-words text-sm text-slate-400">Cited industrial answers with uncertainty handling.</p>
             </div>
           </div>
-          <div className="mb-5 rounded-2xl border border-white/10 bg-white/[0.05] p-4">
+          <div className="mb-5 rounded-2xl border border-cyan-300/18 bg-white/[0.055] p-4">
             <div className="flex flex-col gap-3 sm:flex-row">
               <input
                 value={question}
@@ -307,6 +326,14 @@ export default function CopilotPage() {
               </button>
             </div>
           </div>
+          {!asked ? (
+            <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.055] p-5">
+              <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-cyan-100"><CheckCircle2 size={16} /> Ready to answer from indexed plant evidence</div>
+              <div className="grid gap-3 md:grid-cols-3">
+                {["Ask a demo question", "Review source citations", "Open suggested actions"].map((item) => <div key={item} className="rounded-xl border border-white/10 bg-white/[0.045] p-4 text-sm text-slate-300">{item}</div>)}
+              </div>
+            </div>
+          ) : null}
           {asked ? (
             <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/5 p-5">
               <div className="mb-3 flex items-center gap-2 text-sm text-emerald-200">
@@ -320,6 +347,8 @@ export default function CopilotPage() {
                 </div>
               ) : isAsking ? (
                 <p className="break-words text-lg leading-8 text-slate-100">Retrieving relevant uploaded document chunks...</p>
+              ) : response?.evidence_strength === "insufficient" ? (
+                <InsufficientEvidencePanel answer={response.direct_answer} actions={response.suggested_next_actions} />
               ) : structuredAnswer ? (
                 <StructuredAnswer section={structuredAnswer} />
               ) : (
@@ -330,6 +359,7 @@ export default function CopilotPage() {
             </div>
           ) : null}
           <div className="mt-5 grid gap-3">
+            {citations.length > 0 ? <div className="flex items-center gap-2 text-sm font-semibold text-cyan-200"><FileSearch size={16} /> Source citations</div> : null}
             {!isAsking && citations.map((citation) => <CitationCard key={citation.id} {...citation} />)}
           </div>
         </GlassCard>
@@ -349,3 +379,12 @@ export default function CopilotPage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+

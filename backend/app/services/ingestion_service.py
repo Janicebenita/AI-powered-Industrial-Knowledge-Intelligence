@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import csv
 import shutil
@@ -59,6 +59,11 @@ def read_document(path: Path) -> str:
             return "\n".join(page.extract_text() or "" for page in reader.pages)
         except Exception as exc:
             return f"OCR_REQUIRED: Could not extract PDF text locally. Error: {exc}"
+    if suffix in {".png", ".jpg", ".jpeg", ".tif", ".tiff"}:
+        companion = path.with_suffix(".txt")
+        if companion.exists():
+            return companion.read_text(encoding="utf-8", errors="ignore")
+        return f"OCR_REQUIRED: Image document {path.name} requires OCR or a companion extracted text file."
     return path.read_text(encoding="utf-8", errors="ignore")
 
 
@@ -70,6 +75,14 @@ def infer_doc_type(filename: str, text: str) -> str:
         return "InspectionReport"
     if "work order" in lower or "wo-" in lower:
         return "MaintenanceWorkOrder"
+    if "qa/qc" in lower or "inspection and test plan" in lower or "quality assurance" in lower or "quality control manual" in lower:
+        return "QAQCManual"
+    if "tender" in lower or "bill of quantities" in lower or "scope of work" in lower or "contract" in lower:
+        return "TenderContractDocument"
+    if "nonconformity" in lower or "ncr" in lower or "iso 9001" in lower:
+        return "QualityNonconformance"
+    if "method statement" in lower or "construction method" in lower or "constructionmethods" in lower:
+        return "ConstructionMethodStatement"
     if "checklist" in lower or "regulation" in lower or "osha" in lower or "api" in lower:
         return "RegulatoryChecklist"
     if "incident" in lower:
@@ -140,3 +153,5 @@ async def ingest_upload(file: UploadFile, owner_role: str = "operations") -> dic
     with target.open("wb") as handle:
         shutil.copyfileobj(file.file, handle)
     return ingest_path(target, owner_role=owner_role)
+
+

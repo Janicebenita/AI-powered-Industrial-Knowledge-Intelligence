@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
+import { Pressable, SafeAreaView, StatusBar, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "./src/theme";
 import { DashboardScreen } from "./src/screens/DashboardScreen";
@@ -34,14 +34,14 @@ export default function App() {
         </View>
       </View>
       <View style={styles.content}>
-        {tab === "dashboard" ? <DashboardScreen /> : null}
+        {tab === "dashboard" ? <DashboardScreen onNavigate={setTab} /> : null}
         {tab === "documents" ? <DocumentsScreen /> : null}
         {tab === "copilot" ? <CopilotScreen /> : null}
         {tab === "assets" ? <AssetsScreen /> : null}
         {tab === "compliance" ? <ComplianceScreen /> : null}
         {tab === "reports" ? <ReportsScreen /> : null}
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
+      <View style={styles.tabs}>
         {tabs.map((item) => {
           const active = item.key === tab;
           return (
@@ -51,7 +51,7 @@ export default function App() {
             </Pressable>
           );
         })}
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -99,20 +99,24 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
+    flexDirection: "row",
+    flexWrap: "wrap",
     borderTopWidth: 1,
     borderTopColor: colors.border,
     backgroundColor: "#071024"
   },
   tab: {
-    minWidth: 94,
+    flexBasis: "31%",
+    flexGrow: 1,
     minHeight: 46,
     alignItems: "center",
     justifyContent: "center",
-    flexDirection: "row",
+    flexDirection: "column",
     gap: 6,
     borderRadius: 14,
     backgroundColor: "rgba(255,255,255,0.05)",
-    paddingHorizontal: 12
+    paddingHorizontal: 8,
+    paddingVertical: 8
   },
   activeTab: {
     backgroundColor: colors.primary

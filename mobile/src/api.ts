@@ -1,6 +1,6 @@
 import type { BackendAsset, ComplianceResponse, CopilotResponse, DashboardResponse, DocumentRecord, MaintenanceResponse } from "./types";
 
-export const API_BASE = "http://127.0.0.1:8000";
+export const API_BASE = "http://192.168.68.111:8000";
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, init);

@@ -1,5 +1,5 @@
-import type { LucideIcon } from "lucide-react";
-import { Activity, AlertTriangle, BadgeCheck, BookOpen, ClipboardCheck, Factory, FileSearch, Gauge, ShieldCheck, Wrench, Zap } from "lucide-react";
+﻿import type { LucideIcon } from "lucide-react";
+import { Activity, AlertTriangle, BadgeCheck, BarChart3, BookOpen, ClipboardCheck, Factory, FileSearch, Gauge, ShieldCheck, Wrench, Zap } from "lucide-react";
 
 export type RiskLevel = "Low" | "Medium" | "High" | "Critical";
 export type ValidationStatus = "Approved" | "Needs Review" | "Rejected";
@@ -76,12 +76,22 @@ export const entities = [
   ["pressure test overdue", "Inspection Finding", 89, "V203_API510_gap.pdf", "p.4 / Inspection", "V203", "Needs Review"],
   ["permit-to-work", "Safety Procedure", 93, "SOP-VES-203.pdf", "p.1 / Scope", "V203", "Approved"],
   ["oil contamination", "Inspection Finding", 82, "C201_oil_analysis.csv", "row 14", "C201", "Needs Review"],
-  ["corrosion under insulation", "Quality Non-Conformance", 86, "HX401_inspection_report.pdf", "p.6 / NDT", "HX401", "Approved"]
+  ["corrosion under insulation", "Quality Non-Conformance", 86, "HX401_inspection_report.pdf", "p.6 / NDT", "HX401", "Approved"],
+  ["ISO 9001:2015 Clause 7.1.5.2", "Regulatory Clause", 95, "NCR_calibration_nonconformity.txt", "Audit Criteria", "Machine Shop", "Approved"],
+  ["overdue micrometer calibration", "Quality Non-Conformance", 93, "NCR_calibration_nonconformity.jpg", "Nonconformity", "Machine Shop", "Approved"],
+  ["construction method controls", "Procedure", 90, "07_ConstructionMethodsStatements.pdf", "Method Statement", "Project Site", "Needs Review"],
+  ["QA/QC inspection and test plan", "Procedure", 91, "QA_QC_Manual_Appendix_Part_2.pdf", "QA/QC Manual", "Project Quality", "Needs Review"],
+  ["tender scope and contract requirements", "Engineering Metadata", 89, "Tender_document.pdf", "Tender Document", "Commercial / Project", "Needs Review"]
 ] as const;
 
 export const documents = [
   { name: "WO-10877_P101_vibration_repeat.pdf", type: "Maintenance Work Order", progress: 100, status: "Knowledge graph updated", confidence: 94 },
   { name: "SOP-MECH-014_pump_isolation.docx", type: "SOP", progress: 100, status: "Vector stored", confidence: 97 },
+  { name: "07_ConstructionMethodsStatements.pdf", type: "Construction Method Statement", progress: 100, status: "Method controls indexed", confidence: 90 },
+  { name: "NCR_calibration_nonconformity.jpg", type: "Quality NCR / Scanned Form", progress: 100, status: "OCR companion linked", confidence: 92 },
+  { name: "NCR_calibration_nonconformity.txt", type: "Extracted OCR Evidence", progress: 100, status: "ISO 9001 evidence mapped", confidence: 96 },
+  { name: "QA_QC_Manual_Appendix_Part_2.pdf", type: "QA/QC Manual", progress: 100, status: "Quality controls indexed", confidence: 91 },
+  { name: "Tender_document.pdf", type: "Tender / Contract Evidence", progress: 100, status: "Scope and obligations indexed", confidence: 89 },
   { name: "HX401_inspection_report_scan.tiff", type: "Scanned Inspection", progress: 82, status: "Entity validation pending", confidence: 86 },
   { name: "Electrical_Safety_Checklist.xlsx", type: "Compliance Checklist", progress: 100, status: "NFPA mapping complete", confidence: 91 }
 ];
@@ -124,6 +134,22 @@ export const reports = [
   { title: "Preventive Maintenance Backlog", type: "Maintenance Report", status: "Draft", owner: "Maintenance", updated: "2026-06-19" }
 ];
 
+export const demoQuestions = [
+  { category: "Maintenance RCA", question: "Why has Pump P101 failed repeatedly?" },
+  { category: "Maintenance History", question: "Show complete maintenance history of Pump P101." },
+  { category: "SOP / Field Work", question: "Which SOP applies before maintenance on Pump P101?" },
+  { category: "Compliance", question: "Which assets have overdue inspections?" },
+  { category: "RCA", question: "Generate RCA for Compressor C201." },
+  { category: "Safety", question: "What recurring safety risks exist in the plant?" },
+  { category: "QA/QC Manual", question: "What QA/QC inspection and test controls are described in the QA/QC manual?" },
+  { category: "QA/QC Manual", question: "Which quality records should be maintained for inspection and test activities?" },
+  { category: "NCR", question: "What was the nonconformity in the NCR and what corrective action was taken?" },
+  { category: "NCR", question: "Which ISO 9001 requirement is cited in the calibration NCR?" },
+  { category: "Method Statement", question: "What construction method controls and safety checks are required before execution?" },
+  { category: "Tender", question: "What scope, obligations, or deliverables are mentioned in the tender document?" },
+  { category: "Tender", question: "Which tender requirements should be converted into compliance or project evidence tasks?" },
+  { category: "Evidence Guardrail", question: "Can you approve hot work without a permit or cited SOP?" }
+];
 export const navItems: Array<{ label: string; href: string; icon: LucideIcon }> = [
   { label: "Command Dashboard", href: "/platform/dashboard", icon: Gauge },
   { label: "AI Copilot", href: "/platform/copilot", icon: Activity },
@@ -136,5 +162,11 @@ export const navItems: Array<{ label: string; href: string; icon: LucideIcon }> 
   { label: "Compliance", href: "/platform/compliance", icon: ShieldCheck },
   { label: "Lessons Learned", href: "/platform/lessons", icon: AlertTriangle },
   { label: "Reports", href: "/platform/reports", icon: BadgeCheck },
+  { label: "Evaluation Metrics", href: "/platform/evaluation", icon: BarChart3 },
   { label: "Admin Console", href: "/platform/admin", icon: Gauge }
 ];
+
+
+
+
+

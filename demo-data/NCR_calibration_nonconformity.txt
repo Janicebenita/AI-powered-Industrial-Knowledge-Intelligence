@@ -1,0 +1,27 @@
+﻿NONCONFORMITY REPORT
+NCR No: AUD 026/001
+Company / Process / Department Audited: WTC Ltd
+Address: Picturesque Ind. Est., Keswick, Cumbria
+Audit No: AUD 026
+Audit Date: 16 Month 20xx
+Audit Criteria: ISO 9001:2015 Clause 7.1.5.2
+Auditor: M Green
+Auditee representative: I Mendit
+Area audited: Machine Shop
+Nonconformity severity: Minor
+
+NONCONFORMITY
+1. Micrometers were found in use that had not been calibrated as required by the company's calibration schedule.
+2. Micrometers X56 and X67 in use in the Machine Shop have been annually calibrated, whereas Calibration Schedule reference QMS/Doc 3 specifies a 6-month interval.
+3. When measurement traceability is a requirement, measuring equipment shall be calibrated at specified intervals.
+
+CORRECTION
+The identified micrometers and two others that had also not been calibrated at the specified 6-month interval have been recalibrated, their status indicator labels updated, and the schedule updated. No retrospective action was required because all four micrometers did not need adjustment and previous results were considered reliable.
+
+CORRECTIVE ACTION
+The Process Owner added a 3-monthly check requirement for the Machine Shop Manager and records this in the new Excel Calibration Schedule. The calibration procedure was revised to reflect these changes. Internal audits will assess the effectiveness of the action.
+
+FOLLOW-UP / CLOSE OUT
+The recalibrated micrometers were witnessed in the Machine Shop and the revised Calibration Schedule and Procedure were examined. Records were available from a recent internal audit and revised checklists were in use to verify the procedure changes. No further instances of overdue or uncalibrated items were noted.
+
+Extracted entities: QualityIssue=Calibration nonconformance; Regulation=ISO 9001:2015 Clause 7.1.5.2; Location=Machine Shop; PersonnelRole=Auditor, Auditee Representative, Process Owner, Machine Shop Manager; MaintenanceAction=Recalibration; InspectionFinding=Overdue calibration interval; DocumentType=Nonconformity Report.
