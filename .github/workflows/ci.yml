@@ -7,50 +7,47 @@ on:
     branches: [main]
 
 jobs:
-  backend:
-    name: Backend checks
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install backend dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
-
-      - name: Compile backend
-        working-directory: backend
-        run: python -m compileall app
-
-  frontend:
+  frontend-build:
     name: Frontend build
     runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
 
-      - name: Set up Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: 22
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
 
-      - name: Install frontend dependencies
-        working-directory: frontend
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build frontend
-        working-directory: frontend
-        run: pnpm run build
+        run: pnpm build
+
+  backend-check:
+    name: Backend syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Compile backend
+        run: python -m compileall backend/app
