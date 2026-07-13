@@ -7,6 +7,7 @@ FROM node:22-bookworm-slim AS frontend-builder
 WORKDIR /app/frontend
 COPY --from=frontend-deps /app/frontend/node_modules ./node_modules
 COPY frontend ./
+RUN mkdir -p public
 ENV NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
 RUN corepack enable && pnpm build
 
