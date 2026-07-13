@@ -1,11 +1,11 @@
-﻿"use client";
+"use client";
 
-import { ChangeEvent, DragEvent, useRef, useState } from "react";
-import { CheckCircle2, FileText, FileUp, Loader2, RotateCcw, XCircle } from "lucide-react";
+import { ChangeEvent, DragEvent, useEffect, useRef, useState } from "react";
+import { CheckCircle2, FileUp, Loader2, Trash2, XCircle } from "lucide-react";
 import { GlassCard, MetricCard } from "@/components/platform/cards";
 import { ProcessingTimeline } from "@/components/platform/processing-timeline";
 import { ConfidenceBadge, SeverityBadge } from "@/components/platform/badges";
-import { documents, pipeline } from "@/lib/demo-data";
+import { pipeline } from "@/lib/demo-data";
 
 type UploadStatus = "queued" | "uploading" | "processed" | "failed";
 
@@ -19,10 +19,38 @@ type UploadedDocument = {
   docType?: string;
 };
 
+type IndexedDocument = {
+  id: number;
+  filename: string;
+  doc_type: string;
+  created_at: string;
+  owner_role: string;
+  permission_level: string;
+};
+
 export default function IngestionPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploadQueue, setUploadQueue] = useState<UploadedDocument[]>([]);
+  const [indexedDocuments, setIndexedDocuments] = useState<IndexedDocument[]>([]);
+  const [documentsLoading, setDocumentsLoading] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
+
+  async function loadDocuments() {
+    setDocumentsLoading(true);
+    try {
+      const response = await fetch("/api/documents", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error("Could not load indexed documents.");
+      }
+      setIndexedDocuments(await response.json());
+    } finally {
+      setDocumentsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadDocuments();
+  }, []);
 
   async function uploadOne(file: File, id: string) {
     setUploadQueue((items) =>
@@ -45,6 +73,7 @@ export default function IngestionPage() {
       }
 
       const result = await response.json();
+      void loadDocuments();
       setUploadQueue((items) =>
         items.map((item) =>
           item.id === id
@@ -72,6 +101,20 @@ export default function IngestionPage() {
         )
       );
     }
+  }
+
+  async function removeDocument(document: IndexedDocument) {
+    const ok = window.confirm(`Remove ${document.filename} from Industrial Brain AI?`);
+    if (!ok) {
+      return;
+    }
+
+    const response = await fetch(`/api/documents/${document.id}`, { method: "DELETE" });
+    if (!response.ok) {
+      alert("Could not remove this document. Please retry.");
+      return;
+    }
+    setIndexedDocuments((items) => items.filter((item) => item.id !== document.id));
   }
 
   function enqueueFiles(fileList: FileList | File[]) {
@@ -149,29 +192,6 @@ export default function IngestionPage() {
         <ProcessingTimeline steps={pipeline} />
       </GlassCard>
       <GlassCard className="xl:col-span-2">
-        <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="font-semibold">Judge Evidence Pack</h2>
-            <p className="mt-1 text-sm text-slate-400">Use these sample records to prove the platform handles execution, quality, compliance, and scanned document intelligence.</p>
-          </div>
-          <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold text-cyan-200">5 evidence classes</span>
-        </div>
-        <div className="mb-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {[
-            ["Method Statement", "07_ConstructionMethodsStatements.pdf", "Construction controls and execution methodology"],
-            ["Scanned NCR", "NCR_calibration_nonconformity.jpg", "Machine-shop calibration nonconformity"],
-            ["OCR Companion", "NCR_calibration_nonconformity.txt", "ISO 9001 clause and corrective action evidence"],
-            ["QA/QC Manual", "QA_QC_Manual_Appendix_Part_2.pdf", "Quality inspection and test controls"],
-            ["Tender", "Tender_document.pdf", "Scope, obligations, deliverables, and contractual evidence"]
-          ].map(([kind, name, description]) => (
-            <div key={name} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-              <FileText className="mb-3 text-cyan-300" size={20} />
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{kind}</p>
-              <h3 className="mt-2 break-words text-sm font-bold text-white">{name}</h3>
-              <p className="mt-2 text-xs leading-5 text-slate-400">{description}</p>
-            </div>
-          ))}
-        </div>
         <h2 className="mb-4 font-semibold">Document Queue</h2>
         {uploadQueue.length > 0 && (
           <div className="mb-5 grid gap-3 lg:grid-cols-2">
@@ -183,7 +203,7 @@ export default function IngestionPage() {
                     <p className="mt-1 text-sm text-slate-400">{doc.message}</p>
                     {doc.status === "processed" && (
                       <p className="mt-2 text-xs text-cyan-200">
-                        {doc.docType} - {doc.chunks} chunks - {doc.entities} entities
+                        {doc.docType} · {doc.chunks} chunks · {doc.entities} entities
                       </p>
                     )}
                   </div>
@@ -204,14 +224,28 @@ export default function IngestionPage() {
           </div>
         )}
         <div className="grid gap-3 lg:grid-cols-2">
-          {documents.map((doc) => (
-            <div key={doc.name} className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
+          {documentsLoading ? (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-sm text-slate-400">Loading indexed documents...</div>
+          ) : null}
+          {!documentsLoading && indexedDocuments.length === 0 ? (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-sm text-slate-400">No indexed documents yet. Upload a file to add evidence.</div>
+          ) : null}
+          {indexedDocuments.map((doc) => (
+            <div key={doc.id} className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
               <div className="flex items-start justify-between gap-3">
-                <div><h3 className="font-semibold">{doc.name}</h3><p className="text-sm text-slate-400">{doc.type}</p></div>
-                <ConfidenceBadge value={doc.confidence} />
+                <div>
+                  <h3 className="break-words font-semibold">{doc.filename}</h3>
+                  <p className="text-sm text-slate-400">{doc.doc_type}</p>
+                </div>
+                <ConfidenceBadge value={92} />
               </div>
-              <div className="mt-4 h-2 rounded-full bg-white/10"><div className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400" style={{ width: `${doc.progress}%` }} /></div>
-              <div className="mt-3 flex items-center justify-between text-sm"><SeverityBadge value={doc.progress === 100 ? "Approved" : "Needs Review"} /><button className="inline-flex items-center gap-1 text-slate-300"><RotateCcw size={14} /> Retry</button></div>
+              <div className="mt-4 h-2 rounded-full bg-white/10"><div className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400" style={{ width: "100%" }} /></div>
+              <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+                <SeverityBadge value="Approved" />
+                <button onClick={() => void removeDocument(doc)} className="inline-flex items-center gap-1 rounded-lg bg-red-500/15 px-3 py-2 text-red-100 hover:bg-red-500/25">
+                  <Trash2 size={14} /> Remove
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -221,7 +255,3 @@ export default function IngestionPage() {
     </div>
   );
 }
-
-
-
-

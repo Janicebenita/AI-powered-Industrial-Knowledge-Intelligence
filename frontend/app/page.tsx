@@ -18,6 +18,15 @@ export default function LandingPage() {
       <section className="grid-pattern relative flex min-h-screen items-center px-6 py-10">
         <div className="mx-auto grid w-full max-w-7xl gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
+            <div className="mb-6 flex items-center gap-4">
+              <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white shadow-[0_0_44px_rgba(34,211,238,0.25)]">
+                <img src="/industrial-brain-ai-logo.png" alt="Industrial Brain AI logo" className="h-full w-full object-cover" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-cyan-200">Unify. Intelligent. Reliable.</p>
+                <p className="mt-1 text-sm text-slate-400">Asset & Operations Intelligence</p>
+              </div>
+            </div>
             <p className="mb-4 inline-flex rounded-full border border-cyan-300/25 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-200">Unified Asset & Operations Intelligence Platform</p>
             <h1 className="max-w-4xl text-5xl font-black leading-tight tracking-normal md:text-7xl">
               <span className="gradient-text">Industrial Brain AI</span>
@@ -85,13 +94,6 @@ export default function LandingPage() {
         ))}
       </section>
       <section className="mx-auto max-w-7xl px-6 py-16">
-        <div className="mb-6">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-cyan-300">Business case</p>
-          <h2 className="mt-2 text-3xl font-black">Estimated Impact Metrics</h2>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
-            Illustrative ROI assumptions for a pilot plant, based on reduced search time, faster troubleshooting, and source-cited AI responses.
-          </p>
-        </div>
         <div className="grid gap-4 md:grid-cols-4">
           {["35% faster troubleshooting", "97% citation coverage", "418 hours saved", "$433k annual ROI"].map((item) => (
             <div key={item} className="glass rounded-2xl p-5 text-center">

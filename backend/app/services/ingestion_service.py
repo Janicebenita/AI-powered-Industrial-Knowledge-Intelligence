@@ -1,6 +1,7 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import csv
+import re
 import shutil
 from pathlib import Path
 from typing import Any
@@ -56,14 +57,12 @@ def read_document(path: Path) -> str:
             from pypdf import PdfReader
 
             reader = PdfReader(str(path))
-            return "\n".join(page.extract_text() or "" for page in reader.pages)
+            text = "\n".join(page.extract_text() or "" for page in reader.pages).strip()
+            if text:
+                return text
+            return f"PDF_UPLOADED: {path.name}. Text extraction returned no readable text. The document is indexed by filename and metadata, but scanned-image OCR text was not available in this demo runtime."
         except Exception as exc:
             return f"OCR_REQUIRED: Could not extract PDF text locally. Error: {exc}"
-    if suffix in {".png", ".jpg", ".jpeg", ".tif", ".tiff"}:
-        companion = path.with_suffix(".txt")
-        if companion.exists():
-            return companion.read_text(encoding="utf-8", errors="ignore")
-        return f"OCR_REQUIRED: Image document {path.name} requires OCR or a companion extracted text file."
     return path.read_text(encoding="utf-8", errors="ignore")
 
 
@@ -75,14 +74,6 @@ def infer_doc_type(filename: str, text: str) -> str:
         return "InspectionReport"
     if "work order" in lower or "wo-" in lower:
         return "MaintenanceWorkOrder"
-    if "qa/qc" in lower or "inspection and test plan" in lower or "quality assurance" in lower or "quality control manual" in lower:
-        return "QAQCManual"
-    if "tender" in lower or "bill of quantities" in lower or "scope of work" in lower or "contract" in lower:
-        return "TenderContractDocument"
-    if "nonconformity" in lower or "ncr" in lower or "iso 9001" in lower:
-        return "QualityNonconformance"
-    if "method statement" in lower or "construction method" in lower or "constructionmethods" in lower:
-        return "ConstructionMethodStatement"
     if "checklist" in lower or "regulation" in lower or "osha" in lower or "api" in lower:
         return "RegulatoryChecklist"
     if "incident" in lower:
@@ -149,9 +140,37 @@ def ingest_path(path: Path, owner_role: str = "operations") -> dict[str, Any]:
 
 async def ingest_upload(file: UploadFile, owner_role: str = "operations") -> dict[str, Any]:
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    target = UPLOAD_DIR / file.filename
+    original_name = Path(file.filename or "uploaded_document").name
+    safe_name = re.sub(r"[^\w.\- ()\u0080-\uffff]+", "_", original_name).strip(" .") or "uploaded_document"
+    target = UPLOAD_DIR / safe_name
     with target.open("wb") as handle:
         shutil.copyfileobj(file.file, handle)
     return ingest_path(target, owner_role=owner_role)
 
 
+def delete_document(document_id: int) -> dict[str, Any]:
+    with connect() as conn:
+        row = conn.execute("SELECT id, filename, source_path FROM documents WHERE id = ?", (document_id,)).fetchone()
+        if row is None:
+            return {"deleted": False, "document_id": document_id, "message": "Document not found."}
+
+        conn.execute("DELETE FROM citations WHERE document_id = ?", (document_id,))
+        conn.execute("DELETE FROM entity_relationships WHERE document_id = ?", (document_id,))
+        conn.execute("DELETE FROM entities WHERE document_id = ?", (document_id,))
+        conn.execute("DELETE FROM chunks WHERE document_id = ?", (document_id,))
+        conn.execute("UPDATE failures SET document_id = NULL WHERE document_id = ?", (document_id,))
+        conn.execute("UPDATE work_orders SET document_id = NULL WHERE document_id = ?", (document_id,))
+        conn.execute("UPDATE inspections SET document_id = NULL WHERE document_id = ?", (document_id,))
+        conn.execute("UPDATE procedures SET document_id = NULL WHERE document_id = ?", (document_id,))
+        conn.execute("DELETE FROM documents WHERE id = ?", (document_id,))
+        conn.execute("INSERT INTO audit_logs(actor, action, target, detail) VALUES (?, ?, ?, ?)", ("operations", "delete_document", row["filename"], f"Removed document id {document_id}"))
+        conn.commit()
+
+    source_path = Path(row["source_path"])
+    try:
+        if source_path.exists() and source_path.resolve().is_relative_to(UPLOAD_DIR.resolve()):
+            source_path.unlink()
+    except OSError:
+        pass
+
+    return {"deleted": True, "document_id": document_id, "filename": row["filename"]}
