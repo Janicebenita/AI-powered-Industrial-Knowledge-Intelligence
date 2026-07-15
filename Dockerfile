@@ -2,14 +2,14 @@
 
 WORKDIR /app/frontend
 
-COPY frontend/package.json frontend/pnpm-lock.yaml* ./
-RUN corepack enable && pnpm install --frozen-lockfile=false
+COPY frontend/package.json ./
+RUN npm install --legacy-peer-deps
 
 COPY frontend ./
-RUN pnpm build
+RUN npm run build
 
 ENV NODE_ENV=production
 ENV PORT=3000
 EXPOSE 3000
 
-CMD ["pnpm", "start"]
+CMD ["npm", "run", "start"]
