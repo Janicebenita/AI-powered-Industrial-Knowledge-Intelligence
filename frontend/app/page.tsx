@@ -1,30 +1,29 @@
 import Link from "next/link";
 import { ArrowRight, BrainCircuit, Factory, FileSearch, GitBranch, LucideIcon, ShieldCheck, Wrench } from "lucide-react";
 import { ParticleField } from "@/components/particle-field";
+import { BrandLogo } from "@/components/platform/brand-logo";
 
 const features: Array<[string, LucideIcon, string]> = [
-  ["Document Intelligence", FileSearch, "Ingest manuals, SOPs, scanned reports, spreadsheets, drawings, and compliance records."],
-  ["Knowledge Graph", GitBranch, "Connect assets, failures, procedures, regulations, locations, people, and evidence."],
-  ["AI Copilot", BrainCircuit, "Ask operational questions and receive cited, auditable answers with confidence scoring."],
-  ["Maintenance Intelligence", Wrench, "Detect repeated failures, RCA hypotheses, and preventive maintenance actions."],
-  ["Compliance Intelligence", ShieldCheck, "Map regulations to evidence, find gaps, and generate audit-ready summaries."],
-  ["Industrial SaaS", Factory, "Built for refineries, steel plants, chemical facilities, power plants, and manufacturing."]
+  ["Document Intelligence", FileSearch, "Manuals, SOPs, NCR, QA/QC, tender, inspections."],
+  ["Knowledge Graph", GitBranch, "Assets, failures, procedures, evidence."],
+  ["AI Copilot", BrainCircuit, "Cited answers with confidence scoring."],
+  ["Maintenance Intelligence", Wrench, "Repeated failures, RCA, preventive actions."],
+  ["Compliance Intelligence", ShieldCheck, "Gaps, obligations, audit evidence."],
+  ["Industrial SaaS", Factory, "Built for asset-intensive plants."]
 ];
 
 export default function LandingPage() {
   return (
     <main className="relative overflow-hidden">
       <ParticleField />
-      <section className="grid-pattern relative flex min-h-screen items-center px-6 py-10">
+      <section className="grid-pattern plant-os-bg relative flex min-h-screen items-center px-6 py-10">
         <div className="mx-auto grid w-full max-w-7xl gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
             <div className="mb-6 flex items-center gap-4">
-              <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white shadow-[0_0_44px_rgba(34,211,238,0.25)]">
-                <img src="/industrial-brain-ai-logo.png" alt="Industrial Brain AI logo" className="h-full w-full object-cover" />
-              </div>
+              <BrandLogo size="lg" />
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-cyan-200">Unify. Intelligent. Reliable.</p>
-                <p className="mt-1 text-sm text-slate-400">Asset & Operations Intelligence</p>
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-200">Unify. Intelligent. Reliable.</p>
+                <p className="mt-1 text-sm font-medium text-slate-300">Asset & Operations Intelligence</p>
               </div>
             </div>
             <p className="mb-4 inline-flex rounded-full border border-cyan-300/25 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-200">Unified Asset & Operations Intelligence Platform</p>
@@ -32,7 +31,7 @@ export default function LandingPage() {
               <span className="gradient-text">Industrial Brain AI</span>
             </h1>
             <p className="mt-6 text-2xl font-semibold text-white">Transform Industrial Knowledge Into Operational Intelligence</p>
-            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">Reduce downtime, accelerate maintenance decisions, and unlock industrial knowledge using AI.</p>
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">Ask the plant. Trace every answer. Convert industrial documents into cited decisions, RCA, compliance evidence, and next actions.</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/platform" className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-blue-500 px-5 font-bold text-white transition hover:bg-cyan-500">
                 Launch Platform <ArrowRight size={18} />
@@ -40,7 +39,11 @@ export default function LandingPage() {
               <a href="#features" className="inline-flex min-h-12 items-center rounded-lg border border-white/15 px-5 font-bold text-white transition hover:bg-white/10">View Architecture</a>
             </div>
           </div>
-          <div className="glass glow rounded-xl p-5">
+          <div className="glass glow floating rounded-[2rem] p-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <span className="rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-100">Plant OS online</span>
+              <span className="text-xs font-semibold text-cyan-200">AI confidence 98%</span>
+            </div>
             <div className="grid gap-4">
               {["P101 seal failure RCA", "V-203 vessel opening SOP", "NFPA-70E evidence gap", "HX401 corrosion trend"].map((item, index) => (
                 <div key={item} className="rounded-lg border border-white/10 bg-white/[0.06] p-4">
@@ -79,7 +82,7 @@ export default function LandingPage() {
               <div key={item} className="rounded-xl border border-white/10 bg-white/[0.05] p-4">
                 <span className="text-sm text-cyan-300">0{index + 1}</span>
                 <h3 className="mt-2 font-bold">{item}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-400">Enterprise pipeline stage with audit metadata, permissions, and confidence scoring.</p>
+                <p className="mt-2 text-sm leading-6 text-slate-400">Traceable, permission-aware, citation-ready.</p>
               </div>
             ))}
           </div>
@@ -89,11 +92,18 @@ export default function LandingPage() {
         {["Refineries", "Steel Plants", "Chemical Facilities", "Power Plants", "Manufacturing", "Water Utilities"].map((item) => (
           <div key={item} className="glass rounded-2xl p-5">
             <h3 className="font-bold">{item}</h3>
-            <p className="mt-2 text-sm text-slate-400">Asset intelligence for maintenance, compliance, reliability, and executive teams.</p>
+            <p className="mt-2 text-sm text-slate-400">Maintenance, reliability, compliance, leadership.</p>
           </div>
         ))}
       </section>
       <section className="mx-auto max-w-7xl px-6 py-16">
+        <div className="mb-6">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-cyan-300">Business case</p>
+          <h2 className="mt-2 text-3xl font-black">Estimated Impact Metrics</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
+            Pilot assumptions for faster troubleshooting and cited decision support.
+          </p>
+        </div>
         <div className="grid gap-4 md:grid-cols-4">
           {["35% faster troubleshooting", "97% citation coverage", "418 hours saved", "$433k annual ROI"].map((item) => (
             <div key={item} className="glass rounded-2xl p-5 text-center">
@@ -106,7 +116,7 @@ export default function LandingPage() {
       <section className="mx-auto grid max-w-7xl gap-4 px-6 py-16 md:grid-cols-2">
         <div className="glass rounded-2xl p-6">
           <h2 className="text-2xl font-black">Security</h2>
-          <p className="mt-3 leading-7 text-slate-300">JWT, RBAC, document permissions, audit logs, evidence-first answers, and no hallucinated operational guidance without citations.</p>
+          <p className="mt-3 leading-7 text-slate-300">JWT, RBAC, document permissions, audit logs, and citation guardrails.</p>
         </div>
         <div className="glass rounded-2xl p-6">
           <h2 className="text-2xl font-black">Testimonials</h2>
@@ -117,7 +127,7 @@ export default function LandingPage() {
         {["Starter: Single Plant", "Enterprise: Multi-site", "Mission Critical: Regulated Assets"].map((item) => (
           <div key={item} className="glass rounded-xl p-6">
             <h3 className="text-xl font-bold">{item}</h3>
-            <p className="mt-3 text-slate-300">AI knowledge intelligence, cited copilots, compliance maps, and operational graph analytics.</p>
+            <p className="mt-3 text-slate-300">Cited copilot, evidence maps, operational graph.</p>
           </div>
         ))}
       </section>

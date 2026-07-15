@@ -8,47 +8,65 @@ import { ComplianceGauge, DowntimeTrendChart, QueryBreakdownChart, RiskDistribut
 import { assets, coverageHeatmap, demoQuestions, executiveMetrics } from "@/lib/demo-data";
 
 const demoSteps = [
-  { title: "Load Evidence", body: "Seed manuals, method statements, NCR, QA/QC manual, tender, SOPs, and work orders.", href: "/platform/admin", icon: Database },
-  { title: "Ask P101 RCA", body: "Ask why Pump P101 failed repeatedly and require cited evidence.", href: "/platform/copilot", icon: BrainCircuit },
-  { title: "Inspect Asset 360", body: "Open the P101 digital-twin profile with maintenance and risk context.", href: "/platform/assets", icon: FileSearch },
-  { title: "Check Compliance", body: "Review overdue inspections, missing evidence, and audit readiness.", href: "/platform/compliance", icon: ShieldCheck },
-  { title: "Export RCA", body: "Generate a professional RCA report with timeline and source citations.", href: "/platform/rca", icon: ClipboardCheck },
-  { title: "Prove Quality", body: "Show extraction, retrieval, citation, and gap metrics on the evaluation page.", href: "/platform/evaluation", icon: CheckCircle2 }
+  { title: "Load Evidence", body: "Manuals, SOPs, NCR, QA/QC, tender, inspections.", href: "/platform/admin", icon: Database },
+  { title: "Ask P101 RCA", body: "Cited cause analysis for repeated seal failure.", href: "/platform/copilot", icon: BrainCircuit },
+  { title: "Asset 360", body: "Risk, history, documents, open actions.", href: "/platform/assets", icon: FileSearch },
+  { title: "Compliance", body: "Gaps, overdue evidence, audit readiness.", href: "/platform/compliance", icon: ShieldCheck },
+  { title: "Export RCA", body: "Timeline, root causes, corrective actions.", href: "/platform/rca", icon: ClipboardCheck },
+  { title: "Metrics", body: "Retrieval quality and citation coverage.", href: "/platform/evaluation", icon: CheckCircle2 }
 ];
 
 const evidenceItems = [
-  ["Method Statement", "Construction execution controls indexed for safety and QA traceability.", 90],
-  ["NCR Calibration", "ISO 9001 calibration nonconformity mapped to corrective action evidence.", 96],
-  ["QA/QC Manual", "Inspection and test controls converted into searchable quality intelligence.", 91],
-  ["Tender Document", "Contract scope and deliverables available for evidence mapping.", 89]
+  ["Method Statement", "Execution controls indexed.", 90],
+  ["NCR Calibration", "ISO 9001 corrective action linked.", 96],
+  ["QA/QC Manual", "Inspection controls searchable.", 91],
+  ["Tender Document", "Scope and deliverables mapped.", 89]
+] as const;
+
+const plantStatus = [
+  ["Plant Status", "Healthy", "success"],
+  ["Intelligence Score", "97%", "info"],
+  ["Today's Insights", "7", "warning"],
+  ["Critical Risks", "2", "critical"],
+  ["AI Confidence", "98%", "success"]
 ] as const;
 
 export default function DashboardPage() {
   return (
     <div className="grid gap-6">
-      <section className="command-panel relative overflow-hidden rounded-3xl p-6 md:p-8">
-        <div className="absolute right-8 top-8 h-44 w-44 rounded-full bg-cyan-400/10 blur-3xl" />
+      <section className="command-panel plant-os-bg relative overflow-hidden rounded-[2rem] p-6 md:p-8">
+        <div className="absolute right-10 top-10 h-56 w-56 rounded-full bg-cyan-400/10 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-px w-2/3 bg-gradient-to-r from-transparent via-cyan-300/50 to-blue-400/0" />
-        <div className="relative grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_420px] xl:items-end">
+        <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px_360px] xl:items-center">
           <div>
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-100">
-              <Sparkles size={14} /> Industrial AI Command Center
+              <Sparkles size={14} /> Industrial Brain AI
             </div>
-            <h1 className="max-w-4xl text-4xl font-black tracking-normal md:text-6xl">Executive Intelligence Cockpit</h1>
-            <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">Real-time operational intelligence, compliance readiness, and AI-cited engineering insights across Plant A.</p>
+            <h1 className="max-w-4xl text-4xl font-black tracking-normal md:text-6xl">Transform Industrial Knowledge Into Operational Intelligence</h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300">The operating system for Plant A: cited AI, asset intelligence, maintenance decisions, compliance evidence, and executive control in one calm command surface.</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/platform/copilot?question=Why%20has%20Pump%20P101%20failed%20repeatedly%3F" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-blue-500 px-5 text-sm font-bold text-white shadow-[0_0_32px_rgba(59,130,246,0.35)] transition hover:bg-cyan-500"><PlayCircle size={18} /> Run flagship demo</Link>
               <Link href="/platform/evaluation" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-5 text-sm font-bold text-cyan-100 transition hover:bg-cyan-300/15"><TrendingUp size={18} /> Show evidence metrics</Link>
             </div>
           </div>
-          <div className="grid gap-3 rounded-3xl border border-white/10 bg-[#050816]/55 p-4">
-            <div className="flex items-center justify-between gap-3"><StatusBadge value="Ready" /><span className="text-sm text-cyan-200">AI citations enforced</span></div>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.055] p-3"><p className="text-xs text-slate-400">Critical risks</p><strong className="mt-1 block text-2xl text-white">11</strong></div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.055] p-3"><p className="text-xs text-slate-400">Compliance</p><strong className="mt-1 block text-2xl text-white">82%</strong></div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.055] p-3"><p className="text-xs text-slate-400">Cited AI</p><strong className="mt-1 block text-2xl text-white">97%</strong></div>
+          <div className="floating grid gap-3 rounded-[1.75rem] border border-white/10 bg-[#081320]/62 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
+            <div className="flex items-center justify-between gap-3"><StatusBadge value="Healthy" /><span className="text-sm text-cyan-200">AI citations enforced</span></div>
+            <div className="grid grid-cols-2 gap-3">
+              {plantStatus.map(([label, value, tone]) => (
+                <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.055] p-3">
+                  <p className="text-xs text-slate-400">{label}</p>
+                  <strong className={`mt-1 block text-2xl text-white ${tone === "critical" ? "text-red-100" : tone === "warning" ? "text-amber-100" : ""}`}>{value}</strong>
+                </div>
+              ))}
             </div>
             <p className="text-sm leading-6 text-slate-300">Latest finding: Pump P101 shows repeated seal failure pattern with cavitation evidence and incomplete ISO-14224 taxonomy linkage.</p>
+          </div>
+          <div className="radar-ring min-h-[260px] rounded-[1.75rem] border border-cyan-300/15 bg-cyan-300/[0.045]">
+            <div className="relative z-[1] text-center">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">Plant Risk Radar</p>
+              <strong className="mt-2 block text-5xl font-black text-white">Low</strong>
+              <p className="mt-2 text-sm text-slate-300">2 critical signals monitored</p>
+            </div>
           </div>
         </div>
       </section>
@@ -58,7 +76,7 @@ export default function DashboardPage() {
           <div className="relative flex flex-wrap items-start justify-between gap-4">
             <div>
               <h2 className="text-xl font-black tracking-normal">Next-round demo runbook</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">A guided story that proves ingestion, cited reasoning, compliance intelligence, RCA generation, and measurable evaluation quality.</p>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">A tight jury flow: ingest, ask, cite, analyze, export.</p>
             </div>
             <Link href="/platform/copilot" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-500 px-4 text-sm font-bold text-white shadow-[0_0_30px_rgba(59,130,246,0.32)] transition hover:bg-blue-400">
               <PlayCircle size={18} /> Start demo
@@ -79,7 +97,7 @@ export default function DashboardPage() {
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-bold">Judge Questions</h2>
-              <p className="mt-1 text-sm text-slate-400">Cited prompts covering maintenance, QA/QC, NCR, method statement, and tender evidence.</p>
+              <p className="mt-1 text-sm text-slate-400">Evidence-first prompts for live judging.</p>
             </div>
             <Link href="/platform/evaluation" className="rounded-lg border border-cyan-300/20 px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-cyan-300/10">View metrics</Link>
           </div>

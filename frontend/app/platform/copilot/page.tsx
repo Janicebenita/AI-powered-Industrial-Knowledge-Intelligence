@@ -1,16 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, Bot, FileSearch, Loader2, Radio, Send, ShieldCheck } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { AlertTriangle, Bot, CheckCircle2, FileSearch, Loader2, Radio, Send, ShieldCheck, Sparkles } from "lucide-react";
 import { GlassCard, MetricCard } from "@/components/platform/cards";
 import { CitationCard } from "@/components/platform/citation-card";
-
-const suggested = [
-  "Why has Pump P101 failed repeatedly?",
-  "Which SOP applies before opening vessel V203?",
-  "What should a field technician check first?",
-  "Which regulatory requirements are not covered?"
-];
+import { demoQuestions } from "@/lib/demo-data";
 
 type StaticAnswer = {
   match: string[];
@@ -42,11 +37,24 @@ type CopilotResponse = {
   evidence_strength: string;
 };
 
-type IndexedDocument = {
-  id: number;
-  filename: string;
-  doc_type: string;
+type AnswerSection = {
+  answer: string;
+  reason: string;
+  evidence: string[];
+  relatedAssets: string[];
+  nextAction: string;
+  confidence: string;
 };
+
+const aiChips = [
+  "Predict Failure",
+  "Generate RCA",
+  "Summarize SOP",
+  "Compliance Check",
+  "Generate Report",
+  "Explain Trend",
+  "Find Similar Incident"
+];
 
 const answers: Record<string, StaticAnswer> = {
   pump: {
@@ -112,35 +120,163 @@ function confidencePercent(value: number) {
   return Math.round(value <= 1 ? value * 100 : value);
 }
 
+function clipText(value: string, maxLength = 170) {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  return normalized.length > maxLength ? `${normalized.slice(0, maxLength - 1).trim()}...` : normalized;
+}
+
+function extractAnswerBlock(text: string, labels: string[]) {
+  const allLabels = ["Recommended SOP", "Recommended Finding", "Direct Answer", "Reason", "Evidence", "Related Assets", "Confidence", "Next Action"];
+  const escapedLabels = labels.map((label) => label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const escapedAllLabels = allLabels.map((label) => label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const labelPattern = escapedLabels.join("|");
+  const allLabelPattern = escapedAllLabels.join("|");
+  const match = text.match(new RegExp(`(?:^|\\n)(${labelPattern}):\\s*\\n?([\\s\\S]*?)(?=\\n\\n(?:${allLabelPattern}):|$)`, "i"));
+  return match?.[2]?.trim() || "";
+}
+
+function inferRecommendedSop(question: string, answer: string, documents: string[]) {
+  const sourceText = `${question} ${answer} ${documents.join(" ")}`.toLowerCase();
+  const sopDocument = documents.find((document) => /sop|procedure|loto|isolation|permit/i.test(document));
+
+  if (sopDocument) {
+    return sopDocument;
+  }
+  if (sourceText.includes("v203") || sourceText.includes("v-203") || sourceText.includes("vessel")) {
+    return "SOP-VES-203 Pressure Vessel Opening and Confined Space Entry";
+  }
+  if (sourceText.includes("p101") || sourceText.includes("p-101") || sourceText.includes("pump")) {
+    return "SOP_22_Pump_Isolation.txt";
+  }
+  if (sourceText.includes("electrical") || sourceText.includes("arc flash") || sourceText.includes("ep501")) {
+    return "LOTO_Procedure.txt";
+  }
+  if (sourceText.includes("method statement") || sourceText.includes("mst") || sourceText.includes("coating repair") || sourceText.includes("surface profile")) {
+    return "Method Statement for CS Pipe Internal Field Joint Coating & Coating Repair";
+  }
+  return "No specific SOP identified from cited evidence";
+}
+
+function buildAnswerSection({
+  question,
+  answerText,
+  citations,
+  confidence,
+  response,
+  fallback
+}: {
+  question: string;
+  answerText: string;
+  citations: Array<{ title: string; quote: string }>;
+  confidence: string;
+  response: CopilotResponse | null;
+  fallback: StaticAnswer;
+}): AnswerSection {
+  const insufficient = response?.evidence_strength === "insufficient" || citations.length === 0;
+  const relatedAssets = insufficient
+    ? []
+    : response?.related_assets?.length
+    ? response.related_assets
+    : fallback.context.filter((item) => /\b(P|C|B|HX|V|EP)-?\d{3}\b|P101|V203|EP501|HX401|C201|B203/i.test(item));
+  const evidence = citations.length
+    ? citations.slice(0, 3).map((citation) => `${citation.title}: ${clipText(citation.quote)}`)
+    : ["No source citation was returned. Ask a narrower question or upload the missing evidence document."];
+  const answer =
+    extractAnswerBlock(answerText, ["Recommended SOP", "Recommended Finding", "Direct Answer"]) ||
+    (insufficient ? "Insufficient cited evidence" : inferRecommendedSop(question, answerText, citations.map((citation) => citation.title)));
+  const reason = extractAnswerBlock(answerText, ["Reason"]) || (insufficient ? answerText : "Derived only from matched source citations.");
+  const parsedConfidence = extractAnswerBlock(answerText, ["Confidence"]);
+
+  return {
+    answer: insufficient ? "No answer from current evidence" : answer,
+    reason: clipText(reason, 240),
+    evidence,
+    relatedAssets: relatedAssets.length ? relatedAssets : ["No specific related asset detected"],
+    nextAction: response?.suggested_next_actions?.[0] || "Review the cited source before field execution.",
+    confidence: parsedConfidence || confidence
+  };
+}
+
+function StructuredAnswer({ section }: { section: AnswerSection }) {
+  const rows = [
+    { label: "Answer", body: section.answer, accent: true },
+    { label: "Why", body: section.reason },
+    { label: "Evidence", list: section.evidence },
+    { label: "Next Action", body: section.nextAction },
+    { label: "Confidence", body: section.confidence }
+  ];
+
+  return (
+    <div className="grid gap-3">
+      {rows.map((row) => (
+        <div key={row.label} className={`rounded-xl border p-4 ${row.accent ? "border-cyan-300/35 bg-cyan-300/[0.08]" : "border-white/10 bg-white/[0.045]"}`}>
+          <h3 className="mb-2 text-xs font-black uppercase tracking-[0.16em] text-cyan-200">{row.label}</h3>
+          {row.list ? (
+            <div className="grid gap-2">
+              {row.list.map((item, index) => (
+                <p key={`${row.label}-${index}`} className="break-words text-sm leading-6 text-slate-100">{item}</p>
+              ))}
+            </div>
+          ) : (
+            <p className={`break-words text-slate-100 ${row.accent ? "text-lg font-bold leading-7" : "text-sm leading-6"}`}>{row.body}</p>
+          )}
+        </div>
+      ))}
+      <div className="flex flex-wrap gap-2">
+        {section.relatedAssets.slice(0, 4).map((asset) => (
+          <span key={asset} className="rounded-full border border-white/10 bg-white/[0.055] px-3 py-1 text-xs font-semibold text-slate-300">{asset}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+function InsufficientEvidencePanel({ answer, actions }: { answer: string; actions: string[] }) {
+  return (
+    <div className="rounded-2xl border border-amber-300/35 bg-amber-400/[0.08] p-5 shadow-[0_0_32px_rgba(245,158,11,0.12)]">
+      <div className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-[0.14em] text-amber-200">
+        <AlertTriangle size={17} /> Insufficient cited evidence
+      </div>
+      <p className="break-words text-base leading-7 text-slate-100">{answer}</p>
+      <div className="mt-4 grid gap-2">
+        {actions.map((action) => (
+          <div key={action} className="rounded-xl border border-amber-200/15 bg-black/20 p-3 text-sm text-amber-50/90">
+            {action}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function CopilotPage() {
+  const searchParams = useSearchParams();
   const [question, setQuestion] = useState("Why has Pump P101 failed repeatedly?");
-  const [asked, setAsked] = useState(true);
+  const [asked, setAsked] = useState(false);
   const [response, setResponse] = useState<CopilotResponse | null>(null);
   const [isAsking, setIsAsking] = useState(false);
+  const [isWarming, setIsWarming] = useState(true);
   const [error, setError] = useState("");
-  const [documents, setDocuments] = useState<IndexedDocument[]>([]);
-  const [selectedDocumentId, setSelectedDocumentId] = useState("");
-  const fallback = getFallbackAnswer(question);
 
   useEffect(() => {
-    void loadDocuments();
-    const params = new URLSearchParams(window.location.search);
-    const incomingQuestion = params.get("question");
-    void askCopilot(incomingQuestion || "Why has Pump P101 failed repeatedly?");
-    // Run only once on page load so typed questions are not overwritten.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let active = true;
+
+    fetch("/api/copilot/ask", { method: "GET" })
+      .catch(() => null)
+      .finally(() => {
+        if (active) setIsWarming(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
-  async function loadDocuments() {
-    try {
-      const result = await fetch("/api/documents", { cache: "no-store" });
-      if (result.ok) {
-        setDocuments(await result.json());
-      }
-    } catch {
-      setDocuments([]);
+  useEffect(() => {
+    const queryQuestion = searchParams.get("question");
+    if (queryQuestion && !asked && !isAsking) {
+      void askCopilot(queryQuestion);
     }
-  }
+  }, [searchParams, asked, isAsking]);
 
   async function askCopilot(nextQuestion = question) {
     const trimmed = nextQuestion.trim();
@@ -158,11 +294,7 @@ export default function CopilotPage() {
       const result = await fetch("/api/copilot/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question: trimmed,
-          user_role: "maintenance",
-          document_id: selectedDocumentId ? Number(selectedDocumentId) : null
-        })
+        body: JSON.stringify({ question: trimmed, user_role: "maintenance" })
       });
 
       if (!result.ok) {
@@ -179,7 +311,7 @@ export default function CopilotPage() {
     }
   }
 
-  const answerText = response?.direct_answer ?? fallback.answer;
+  const answerText = response?.direct_answer ?? "";
   const citations = response?.citations?.length
     ? response.citations.map((citation, index) => ({
         id: `${citation.document_id}-${citation.chunk_id}-${index}`,
@@ -188,46 +320,93 @@ export default function CopilotPage() {
         confidence: confidencePercent(citation.confidence),
         quote: citation.quote
       }))
-    : response
-      ? []
-      : fallback.citations.map((citation, index) => ({ ...citation, id: `fallback-${index}` }));
-  const confidence = response ? `${confidencePercent(response.confidence)}%` : fallback.confidence;
-  const evidence = response ? response.evidence_strength : fallback.evidence;
+    : [];
+  const confidence = response ? `${confidencePercent(response.confidence)}%` : "0%";
+  const evidence = response ? response.evidence_strength : "No question asked";
+  const structuredAnswer = response
+    ? buildAnswerSection({ question, answerText, citations, confidence, response, fallback: getFallbackAnswer(question) })
+    : null;
   const context = response
     ? [
         ...(response.related_assets.length ? response.related_assets.map((asset) => `Asset ${asset}`) : ["No specific asset detected"]),
         ...(response.related_documents.length ? response.related_documents.slice(0, 4) : ["No related documents returned"]),
         ...response.suggested_next_actions.slice(0, 3)
       ]
-    : fallback.context;
+    : ["Ask a question to retrieve cited plant evidence."];
 
   return (
-    <div className="grid min-w-0 gap-5 xl:grid-cols-[260px_minmax(0,1fr)] 2xl:grid-cols-[260px_minmax(0,1fr)_300px]">
-      <GlassCard>
+    <div className="grid min-w-0 gap-5 xl:grid-cols-[300px_minmax(0,1fr)] 2xl:grid-cols-[300px_minmax(0,1fr)_330px]">
+      <GlassCard className="h-fit rounded-[1.75rem]">
         <h2 className="mb-4 font-semibold">Conversation History</h2>
-        {suggested.map((item) => (
+        {demoQuestions.map(({ category, question: item }) => (
           <button
             key={item}
             onClick={() => {
               void askCopilot(item);
             }}
-            className="mb-2 w-full rounded-xl border border-white/10 bg-white/[0.05] p-3 text-left text-sm text-slate-300 transition hover:bg-white/[0.09]"
+            className="mb-2 w-full rounded-xl border border-white/10 bg-white/[0.05] p-3 text-left text-sm text-slate-300 transition hover:border-cyan-300/30 hover:bg-white/[0.09]"
           >
-            {item}
+            <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-300">{category}</span>
+            <span>{item}</span>
           </button>
         ))}
       </GlassCard>
       <section className="grid min-w-0 gap-4">
-        <GlassCard className="min-h-[560px]">
-          <div className="mb-5 flex min-w-0 items-center gap-3">
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-blue-500/20 text-cyan-200"><Bot /></div>
+        <GlassCard className="command-panel plant-os-bg min-h-[680px] rounded-[2rem]">
+          <div className="mb-6 flex min-w-0 flex-wrap items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-3">
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-blue-500/20 text-cyan-200 shadow-[0_0_28px_rgba(0,212,255,0.18)]"><Bot /></div>
             <div className="min-w-0">
-              <h1 className="break-words text-2xl font-black">AI Knowledge Copilot</h1>
-              <p className="break-words text-sm text-slate-400">Cited industrial answers with uncertainty handling.</p>
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-300">The AI Command Center</p>
+              <h1 className="break-words text-3xl font-black">Ask the Plant</h1>
+              <p className="break-words text-sm text-slate-400">Conversational intelligence with cited evidence, confidence, and actions.</p>
+            </div>
+            </div>
+            <div className="rounded-full border border-emerald-300/20 bg-emerald-400/10 px-4 py-2 text-sm font-bold text-emerald-100">{isWarming ? "Index warming" : "Evidence ready"}</div>
+          </div>
+          <div className="mb-4 rounded-[1.6rem] border border-cyan-300/25 bg-white/[0.065] p-4 shadow-[0_0_42px_rgba(0,212,255,0.10)]">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <input
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    void askCopilot();
+                  }
+                }}
+                placeholder="Ask anything about assets, SOPs, failures, quality, compliance, or tender evidence..."
+                className="min-h-16 min-w-0 flex-1 rounded-2xl border border-white/10 bg-[#081320]/72 px-5 text-base outline-none transition focus:border-cyan-300"
+              />
+              <button
+                onClick={() => void askCopilot()}
+                disabled={isAsking}
+                className="inline-flex min-h-16 shrink-0 items-center justify-center gap-2 rounded-2xl bg-blue-500 px-7 font-bold shadow-[0_0_34px_rgba(0,123,255,0.34)] transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isAsking ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />} Ask
+              </button>
             </div>
           </div>
+          <div className="mb-5 flex flex-wrap gap-2">
+            {aiChips.map((chip) => (
+              <button key={chip} type="button" className="ai-chip rounded-full px-4 py-2 text-xs font-bold text-cyan-100">
+                {chip}
+              </button>
+            ))}
+          </div>
+          {!asked ? (
+            <div className="rounded-[1.5rem] border border-cyan-300/20 bg-cyan-300/[0.055] p-5">
+              <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-cyan-100"><CheckCircle2 size={16} /> Ready to answer from indexed plant evidence</div>
+              <div className="grid gap-3 md:grid-cols-3">
+                {[
+                  isWarming ? "Preparing evidence index..." : "Evidence index ready",
+                  "Review source citations",
+                  "Open suggested actions"
+                ].map((item) => <div key={item} className="rounded-xl border border-white/10 bg-white/[0.045] p-4 text-sm text-slate-300">{item}</div>)}
+              </div>
+            </div>
+          ) : null}
           {asked ? (
-            <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/5 p-5">
+            <div className="rounded-[1.5rem] border border-cyan-300/20 bg-cyan-300/5 p-5">
               <div className="mb-3 flex items-center gap-2 text-sm text-emerald-200">
                 {isAsking ? <Loader2 className="animate-spin" size={16} /> : <Radio size={16} />}
                 {isAsking ? "Searching indexed documents and citations..." : "Evidence-backed answer complete"}
@@ -237,51 +416,22 @@ export default function CopilotPage() {
                   <AlertTriangle className="shrink-0" size={18} />
                   <span>{error}</span>
                 </div>
+              ) : isAsking ? (
+                <p className="break-words text-lg leading-8 text-slate-100">Retrieving relevant uploaded document chunks...</p>
+              ) : response?.evidence_strength === "insufficient" ? (
+                <InsufficientEvidencePanel answer={response.direct_answer} actions={response.suggested_next_actions} />
+              ) : structuredAnswer ? (
+                <StructuredAnswer section={structuredAnswer} />
               ) : (
-                <p className="whitespace-pre-line break-words text-lg leading-8 text-slate-100">{isAsking ? "Retrieving relevant uploaded document chunks..." : answerText}</p>
+                <p className="break-words text-lg leading-8 text-slate-100">
+                  Ask a question to search indexed documents. The copilot will decline if it cannot find cited evidence.
+                </p>
               )}
             </div>
           ) : null}
           <div className="mt-5 grid gap-3">
+            {citations.length > 0 ? <div className="flex items-center gap-2 text-sm font-semibold text-cyan-200"><FileSearch size={16} /> Evidence Timeline</div> : null}
             {!isAsking && citations.map((citation) => <CitationCard key={citation.id} {...citation} />)}
-          </div>
-        </GlassCard>
-        <GlassCard>
-          <div className="grid gap-3">
-            <label className="grid gap-2 text-sm text-slate-300">
-              <span className="inline-flex items-center gap-2 text-slate-200"><FileSearch size={16} /> Answer from file</span>
-              <select
-                value={selectedDocumentId}
-                onChange={(event) => setSelectedDocumentId(event.target.value)}
-                className="min-h-12 min-w-0 rounded-xl border border-white/10 bg-[#10182a] px-4 text-slate-100 outline-none focus:border-cyan-300"
-              >
-                <option value="">All indexed files</option>
-                {documents.map((document) => (
-                  <option key={document.id} value={document.id}>
-                    {document.filename} ({document.doc_type})
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="flex flex-col gap-3 sm:flex-row">
-            <input
-              value={question}
-              onChange={(event) => setQuestion(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  void askCopilot();
-                }
-              }}
-              className="min-h-12 min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.07] px-4 outline-none focus:border-cyan-300"
-            />
-            <button
-              onClick={() => void askCopilot()}
-              disabled={isAsking}
-              className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-500 px-5 font-bold hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isAsking ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />} Ask
-            </button>
-            </div>
           </div>
         </GlassCard>
       </section>
@@ -300,3 +450,12 @@ export default function CopilotPage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+

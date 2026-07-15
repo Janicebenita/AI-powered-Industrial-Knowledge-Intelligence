@@ -15,7 +15,7 @@ export default function RcaPage() {
     setExporting(true);
     setMessage("");
     try {
-      const response = await fetch("/api/reports/rca/P-101", { method: "POST" });
+      const response = await fetch("/local-api/reports/rca/P-101", { method: "POST" });
       if (!response.ok) throw new Error(`Export failed with ${response.status}`);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);

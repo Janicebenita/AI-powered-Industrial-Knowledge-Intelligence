@@ -16,7 +16,7 @@ from app.seed import SAMPLE_DIR, seed_demo
 from app.services.compliance_service import audit_evidence_package, compliance_gaps
 from app.services.copilot_service import ask_copilot
 from app.services.graph_service import graph_payload, graph_stats, neighborhood
-from app.services.ingestion_service import delete_document, ingest_upload
+from app.services.ingestion_service import ingest_upload
 from app.services.maintenance_service import asset_360, maintenance_dashboard, rca_for_asset
 
 app = FastAPI(title="Industrial Knowledge Intelligence API", version="0.1.0")
@@ -35,7 +35,6 @@ app.include_router(demo.router)
 class ChatRequest(BaseModel):
     question: str
     user_role: str = "maintenance"
-    document_id: int | None = None
 
 
 @app.on_event("startup")
@@ -74,11 +73,6 @@ def documents() -> list[dict[str, Any]]:
     return query("SELECT id, filename, doc_type, created_at, owner_role, permission_level FROM documents ORDER BY created_at DESC")
 
 
-@app.delete("/api/documents/{document_id}")
-def remove_document(document_id: int) -> dict[str, Any]:
-    return delete_document(document_id)
-
-
 @app.get("/api/documents/{document_id}/download")
 def download_document(document_id: int) -> FileResponse:
     rows = query("SELECT source_path, filename FROM documents WHERE id = ?", (document_id,))
@@ -109,7 +103,7 @@ def asset_graph(asset_tag: str) -> dict[str, Any]:
 
 @app.post("/api/copilot/ask")
 def copilot(request: ChatRequest) -> dict[str, Any]:
-    return ask_copilot(request.question, request.user_role, request.document_id)
+    return ask_copilot(request.question, request.user_role)
 
 
 @app.get("/api/assets")

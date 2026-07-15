@@ -1,15 +1,8 @@
-services:
+﻿services:
   - type: web
-    name: industrial-brain-ai
+    name: intelligence-brain
     env: docker
     plan: free
     dockerfilePath: ./Dockerfile
-    healthCheckPath: /api/health
     autoDeploy: true
-    envVars:
-      - key: NEXT_PUBLIC_API_URL
-        value: http://127.0.0.1:8000
-      - key: INTERNAL_API_URL
-        value: http://127.0.0.1:8000
-      - key: JWT_SECRET
-        generateValue: true
+    healthCheckPath: /
