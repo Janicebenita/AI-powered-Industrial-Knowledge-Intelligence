@@ -31,7 +31,7 @@ Industrial Brain AI reduces downtime, accelerates root cause analysis, improves 
 ---
 ## 🏆 AI Hackathon 2026 Submission
 
-**Problem Statement #8**
+**Open Innovation Track**
 
 **AI for Industrial Knowledge Intelligence: Unified Asset & Operations Brain**
 
