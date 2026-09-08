@@ -384,5 +384,5 @@ The demo covers:
 ## 👥 Team
 
 **Team Name:** janicebenita123  
-**Submission:** ET AI Hackathon 2026  
-**Problem Statement:** #8 – AI for Industrial Knowledge Intelligence: Unified Asset & Operations Brain
+**Submission:** AI Hackathon 2026  
+**Problem Statement:** Open Innovation Track – AI for Industrial Knowledge Intelligence: Unified Asset & Operations Brain
