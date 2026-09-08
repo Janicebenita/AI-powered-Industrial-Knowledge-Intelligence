@@ -29,7 +29,7 @@ Industrial Brain AI reduces downtime, accelerates root cause analysis, improves 
 </p>
 
 ---
-## 🏆 ET AI Hackathon 2026 Submission
+## 🏆 AI Hackathon 2026 Submission
 
 **Problem Statement #8**
 
