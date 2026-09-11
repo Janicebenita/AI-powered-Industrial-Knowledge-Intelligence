@@ -1,7 +1,7 @@
 ﻿import { readdir, readFile, stat } from "fs/promises";
 import path from "path";
-import { execFile } from "child_process";
-import { promisify } from "util";
+import { UPLOAD_DIR, DEMO_DATA_DIR } from "@/lib/server/evidence-paths";
+import { extractPdfText } from "@/lib/server/pdf-text";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -23,11 +23,7 @@ type Evidence = {
   score: number;
 };
 
-const UPLOAD_DIR = path.join(process.cwd(), ".uploads", "documents");
-const DEMO_DATA_DIR = path.join(process.cwd(), "..", "demo-data");
 const ENABLE_SLOW_PDF_EXTRACTION_IN_COPILOT = process.env.COPILOT_ALLOW_SLOW_PDF_EXTRACTION === "1";
-const execFileAsync = promisify(execFile);
-const LOCAL_PYTHON = "C:\\Users\\User\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe";
 let demoDocumentsCache: Promise<IndexedDocument[]> | null = null;
 let uploadedDocumentsCache: { signature: string; documents: IndexedDocument[] } | null = null;
 
@@ -187,28 +183,6 @@ function bestEvidenceForDocument(document: IndexedDocument, question: string): E
   return best;
 }
 
-async function extractPdfText(filePath: string) {
-  const script =
-    "from pypdf import PdfReader; import sys; p=sys.argv[1]; text='\\n'.join(page.extract_text() or '' for page in PdfReader(p).pages); sys.stdout.write(text[:120000])";
-  const candidates = [process.env.PYTHON_PATH, LOCAL_PYTHON, "python", "py"].filter(Boolean) as string[];
-
-  for (const python of candidates) {
-    try {
-      const { stdout } = await execFileAsync(python, ["-c", script, filePath], {
-        env: { ...process.env, PYTHONIOENCODING: "utf-8" },
-        maxBuffer: 1024 * 1024 * 4,
-        timeout: 4500,
-        windowsHide: true
-      });
-      if (stdout.trim()) return stdout.slice(0, 120_000);
-    } catch {
-      // Try the next Python candidate.
-    }
-  }
-
-  return "";
-}
-
 async function readUploadedDocuments(): Promise<IndexedDocument[]> {
   const signature = await getUploadSignature();
   if (uploadedDocumentsCache?.signature === signature) {
@@ -220,7 +194,8 @@ async function readUploadedDocuments(): Promise<IndexedDocument[]> {
 
   try {
     indexed = JSON.parse(await readFile(indexPath, "utf8")) as IndexedDocument[];
-  } catch {
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     indexed = [];
   }
   // Keep Copilot fast: uploaded files are searched from index.json, which is written
@@ -263,6 +238,11 @@ async function readDemoDocuments(): Promise<IndexedDocument[]> {
 }
 
 async function readDemoDocumentsUncached(): Promise<IndexedDocument[]> {
+  try {
+    return JSON.parse(await readFile(path.join(DEMO_DATA_DIR, ".copilot-index.json"), "utf8")) as IndexedDocument[];
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
   const documents: IndexedDocument[] = [];
 
   try {
@@ -273,7 +253,7 @@ async function readDemoDocumentsUncached(): Promise<IndexedDocument[]> {
 
       if (/\.pdf$/i.test(filename)) {
         if (!ENABLE_SLOW_PDF_EXTRACTION_IN_COPILOT) continue;
-        text = await extractPdfText(filePath);
+        text = await extractPdfText(await readFile(filePath));
       } else if (/\.(txt|csv|md|log)$/i.test(filename)) {
         text = (await readFile(filePath, "utf8")).slice(0, 120_000);
       }
@@ -386,8 +366,11 @@ export async function POST(request: Request) {
       return NextResponse.json({
         answer_id: `ans-${Date.now()}`,
         direct_answer:
-          "I don't know from the available cited evidence. I found no uploaded document passage that matches this question, so I will not infer an operational, quality, safety, or compliance answer without a source citation.",
-        confidence: 0.24,
+          documents.length === 0
+            ? "No searchable evidence is available. Upload a text document or a PDF with selectable text in Engineering Docs. If evidence was previously available, check deployment storage and indexing."
+            : "I don't know from the available cited evidence. No matching passage was found for this question. Try a document title or upload the relevant record.",
+        confidence: 0,
+        documents_indexed: documents.length,
         citations: [],
         related_assets: [],
         related_documents: searchDocuments.map((item) => item.filename).slice(0, 5),
@@ -408,6 +391,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       answer_id: `ans-${Date.now()}`,
       direct_answer: directAnswer,
+      documents_indexed: documents.length,
       confidence,
       citations: ranked.map((item, index) => ({
         document_id: index + 1,
@@ -442,7 +426,7 @@ export async function GET() {
     const [demoDocuments, uploadedDocuments] = await Promise.all([readDemoDocuments(), readUploadedDocuments()]);
 
     return NextResponse.json({
-      status: "ready",
+      status: demoDocuments.length + uploadedDocuments.length > 0 ? "ready" : "empty",
       documents_indexed: demoDocuments.length + uploadedDocuments.length,
       uploaded_documents: uploadedDocuments.length,
       demo_documents: demoDocuments.length
@@ -457,5 +441,6 @@ export async function GET() {
     );
   }
 }
+
 
 
