@@ -1,7 +1,7 @@
 import { mkdir, readFile, readdir, unlink, writeFile } from "fs/promises";
 import path from "path";
-import { execFile } from "child_process";
-import { promisify } from "util";
+import { UPLOAD_DIR } from "@/lib/server/evidence-paths";
+import { extractPdfText } from "@/lib/server/pdf-text";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -21,8 +21,6 @@ type IndexedDocument = {
   entities: ExtractedEntity[];
 };
 
-const execFileAsync = promisify(execFile);
-const LOCAL_PYTHON = "C:\\Users\\User\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe";
 
 const ASSET_PATTERNS = [
   ["Pump P101", /\bP-?101\b|pump/i],
@@ -85,42 +83,22 @@ function extractEntities(filename: string, text: string): ExtractedEntity[] {
 }
 
 function chunkEstimate(size: number, text: string) {
+  if (!text.trim()) return 0;
   const textChunks = Math.ceil(Math.max(text.length, 1) / 900);
   const sizeChunks = Math.ceil(Math.max(size, 1) / 120_000);
   return Math.max(1, Math.min(48, Math.max(textChunks, sizeChunks)));
 }
 
-async function extractPdfText(filePath: string) {
-  const script =
-    "from pypdf import PdfReader; import sys; p=sys.argv[1]; text='\\n'.join(page.extract_text() or '' for page in PdfReader(p).pages); sys.stdout.write(text[:120000])";
-  const candidates = [process.env.PYTHON_PATH, LOCAL_PYTHON, "python", "py"].filter(Boolean) as string[];
-
-  for (const python of candidates) {
-    try {
-      const { stdout } = await execFileAsync(python, ["-c", script, filePath], {
-        env: { ...process.env, PYTHONIOENCODING: "utf-8" },
-        maxBuffer: 1024 * 1024 * 4,
-        windowsHide: true
-      });
-      if (stdout.trim()) return stdout.slice(0, 120_000);
-    } catch {
-      // Try the next Python candidate.
-    }
-  }
-
-  return "";
-}
-
-async function extractText(file: File, bytes: Buffer, storedPath: string) {
+async function extractText(file: File, bytes: Buffer) {
   if (/\.pdf$/i.test(file.name) || file.type === "application/pdf") {
-    return (await extractPdfText(storedPath)) || `${file.name} ${file.type} ${bytes.length} bytes`;
+    return extractPdfText(bytes);
   }
 
   if (file.type.startsWith("text/") || /\.(txt|csv|md|log)$/i.test(file.name)) {
     return bytes.toString("utf8").slice(0, 120_000);
   }
 
-  return `${file.name} ${file.type} ${bytes.length} bytes`;
+  return "";
 }
 
 async function appendToIndex(uploadDir: string, document: IndexedDocument) {
@@ -129,7 +107,8 @@ async function appendToIndex(uploadDir: string, document: IndexedDocument) {
 
   try {
     current = JSON.parse(await readFile(indexPath, "utf8")) as IndexedDocument[];
-  } catch {
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     current = [];
   }
 
@@ -140,7 +119,8 @@ async function appendToIndex(uploadDir: string, document: IndexedDocument) {
 async function readIndex(uploadDir: string) {
   try {
     return JSON.parse(await readFile(path.join(uploadDir, "index.json"), "utf8")) as IndexedDocument[];
-  } catch {
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     return [];
   }
 }
@@ -151,7 +131,7 @@ async function writeIndex(uploadDir: string, documents: IndexedDocument[]) {
 }
 
 export async function GET() {
-  const uploadDir = path.join(process.cwd(), ".uploads", "documents");
+  const uploadDir = UPLOAD_DIR;
   const documents = await readIndex(uploadDir);
   const indexedStoredNames = new Set(documents.map((document) => document.stored_filename));
   const orphanFiles: IndexedDocument[] = [];
@@ -188,7 +168,7 @@ export async function GET() {
 
 export async function DELETE(request: Request) {
   try {
-    const uploadDir = path.join(process.cwd(), ".uploads", "documents");
+    const uploadDir = UPLOAD_DIR;
     const storedFilename = new URL(request.url).searchParams.get("stored_filename");
 
     if (!storedFilename) {
@@ -250,9 +230,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ detail: "No file was provided for ingestion." }, { status: 400 });
     }
 
+    if (!/\.(pdf|txt|csv|md|log)$/i.test(file.name)) {
+      return NextResponse.json({ detail: "This deployment supports PDF, TXT, CSV, MD and LOG. Export other formats to text or a searchable PDF first." }, { status: 415 });
+    }
+
     const bytes = Buffer.from(await file.arrayBuffer());
 
-    const uploadDir = path.join(process.cwd(), ".uploads", "documents");
+    const uploadDir = UPLOAD_DIR;
     await mkdir(uploadDir, { recursive: true });
 
     const safeName = file.name.replace(/[^\w.\-() ]+/g, "_");
@@ -260,7 +244,17 @@ export async function POST(request: Request) {
     const storedPath = path.join(uploadDir, storedName);
     await writeFile(storedPath, bytes);
 
-    const text = await extractText(file, bytes, storedPath);
+    let text: string;
+    try {
+      text = await extractText(file, bytes);
+    } catch {
+      await unlink(storedPath);
+      return NextResponse.json({ detail: "PDF text extraction failed. Upload an unlocked PDF with selectable text or an extracted TXT file." }, { status: 422 });
+    }
+    if (!text.trim()) {
+      await unlink(storedPath);
+      return NextResponse.json({ detail: "No searchable text was extracted. Scans need OCR; upload the extracted text as TXT or a searchable PDF." }, { status: 422 });
+    }
     const docType = classifyDocument(file.name, text);
     const entities = extractEntities(file.name, text);
     const chunks = chunkEstimate(bytes.length, text);
@@ -295,3 +289,4 @@ export async function POST(request: Request) {
     );
   }
 }
+
