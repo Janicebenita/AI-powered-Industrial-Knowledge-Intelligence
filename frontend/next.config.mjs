@@ -1,5 +1,9 @@
+import { fileURLToPath } from "node:url";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  outputFileTracingRoot: fileURLToPath(new URL("..", import.meta.url)),
+  serverExternalPackages: ["pdf-parse"],
   async rewrites() {
     return [
       {

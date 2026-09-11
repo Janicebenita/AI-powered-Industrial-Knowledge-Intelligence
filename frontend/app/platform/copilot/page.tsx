@@ -28,6 +28,7 @@ type CopilotCitation = {
 
 type CopilotResponse = {
   answer_id: string;
+  documents_indexed?: number;
   direct_answer: string;
   confidence: number;
   citations: CopilotCitation[];
@@ -255,13 +256,19 @@ export default function CopilotPage() {
   const [response, setResponse] = useState<CopilotResponse | null>(null);
   const [isAsking, setIsAsking] = useState(false);
   const [isWarming, setIsWarming] = useState(true);
+  const [documentCount, setDocumentCount] = useState<number | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
 
     fetch("/api/copilot/ask", { method: "GET" })
-      .catch(() => null)
+      .then(async (result) => {
+        if (!result.ok) throw new Error("Evidence index unavailable");
+        const health = await result.json();
+        if (active) setDocumentCount(health.documents_indexed);
+      })
+      .catch(() => { if (active) setDocumentCount(null); })
       .finally(() => {
         if (active) setIsWarming(false);
       });
@@ -302,7 +309,9 @@ export default function CopilotPage() {
         throw new Error(detail || `Copilot request failed with HTTP ${result.status}`);
       }
 
-      setResponse(await result.json());
+      const answer = await result.json() as CopilotResponse;
+      setResponse(answer);
+      if (typeof answer.documents_indexed === "number") setDocumentCount(answer.documents_indexed);
     } catch (requestError) {
       setResponse(null);
       setError(requestError instanceof Error ? requestError.message : "Copilot request failed. Check the backend server.");
@@ -311,6 +320,7 @@ export default function CopilotPage() {
     }
   }
 
+  const indexLabel = isWarming ? "Checking evidence..." : documentCount === null ? "Evidence index unavailable" : documentCount === 0 ? "No evidence indexed" : `${documentCount} documents searchable`;
   const answerText = response?.direct_answer ?? "";
   const citations = response?.citations?.length
     ? response.citations.map((citation, index) => ({
@@ -362,7 +372,7 @@ export default function CopilotPage() {
               <p className="break-words text-sm text-slate-400">Conversational intelligence with cited evidence, confidence, and actions.</p>
             </div>
             </div>
-            <div className="rounded-full border border-emerald-300/20 bg-emerald-400/10 px-4 py-2 text-sm font-bold text-emerald-100">{isWarming ? "Index warming" : "Evidence ready"}</div>
+            <div className="rounded-full border border-emerald-300/20 bg-emerald-400/10 px-4 py-2 text-sm font-bold text-emerald-100">{indexLabel}</div>
           </div>
           <div className="mb-4 rounded-[1.6rem] border border-cyan-300/25 bg-white/[0.065] p-4 shadow-[0_0_42px_rgba(0,212,255,0.10)]">
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -395,10 +405,10 @@ export default function CopilotPage() {
           </div>
           {!asked ? (
             <div className="rounded-[1.5rem] border border-cyan-300/20 bg-cyan-300/[0.055] p-5">
-              <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-cyan-100"><CheckCircle2 size={16} /> Ready to answer from indexed plant evidence</div>
+              <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-cyan-100"><CheckCircle2 size={16} /> {indexLabel}</div>
               <div className="grid gap-3 md:grid-cols-3">
                 {[
-                  isWarming ? "Preparing evidence index..." : "Evidence index ready",
+                  indexLabel,
                   "Review source citations",
                   "Open suggested actions"
                 ].map((item) => <div key={item} className="rounded-xl border border-white/10 bg-white/[0.045] p-4 text-sm text-slate-300">{item}</div>)}
@@ -409,7 +419,7 @@ export default function CopilotPage() {
             <div className="rounded-[1.5rem] border border-cyan-300/20 bg-cyan-300/5 p-5">
               <div className="mb-3 flex items-center gap-2 text-sm text-emerald-200">
                 {isAsking ? <Loader2 className="animate-spin" size={16} /> : <Radio size={16} />}
-                {isAsking ? "Searching indexed documents and citations..." : "Evidence-backed answer complete"}
+                {isAsking ? "Searching indexed documents and citations..." : error ? "Search failed" : response?.evidence_strength === "insufficient" || citations.length === 0 ? "No matching cited evidence" : "Cited answer complete"}
               </div>
               {error ? (
                 <div className="flex gap-3 rounded-xl border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-100">
@@ -450,6 +460,7 @@ export default function CopilotPage() {
     </div>
   );
 }
+
 
 
 
