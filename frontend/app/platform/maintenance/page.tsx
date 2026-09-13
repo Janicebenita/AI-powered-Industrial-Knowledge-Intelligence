@@ -1,6 +1,6 @@
 import { AssetHealthCard } from "@/components/platform/asset-health-card";
 import { ChartCard, GlassCard, MetricCard } from "@/components/platform/cards";
-import { DowntimeTrendChart, RiskDistributionChart, SeverityBarChart } from "@/components/charts/industrial-charts";
+import { DowntimeTrendChart, SeverityBarChart } from "@/components/charts/industrial-charts";
 import { assets } from "@/lib/demo-data";
 
 export default function MaintenancePage() {

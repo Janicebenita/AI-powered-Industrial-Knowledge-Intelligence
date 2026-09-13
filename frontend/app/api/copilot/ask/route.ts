@@ -1,4 +1,10 @@
-﻿import { readdir, readFile, stat } from "fs/promises";
+import { hash } from '@/lib/server/integrations/state';
+import { modes, IntegrationError } from '@/lib/server/integrations/config';
+import { identity, sameOrigin, rateLimit } from '@/lib/server/integrations/auth';
+import { startWorkflow } from '@/lib/server/integrations/workflow';
+import { errorResponse } from '@/lib/server/integrations/api';
+import { healthReport } from '@/lib/server/integrations/factory';
+import { readdir, readFile, stat } from "fs/promises";
 import path from "path";
 import { UPLOAD_DIR, DEMO_DATA_DIR } from "@/lib/server/evidence-paths";
 import { extractPdfText } from "@/lib/server/pdf-text";
@@ -18,7 +24,7 @@ type IndexedDocument = {
 type Evidence = {
   filename: string;
   section: string;
-  page_number: number;
+  page_number: number | null;
   quote: string;
   score: number;
 };
@@ -170,7 +176,7 @@ function bestEvidenceForDocument(document: IndexedDocument, question: string): E
     const evidence = {
       filename: document.filename,
       section: document.doc_type || "Uploaded document",
-      page_number: 1,
+      page_number: null,
       quote,
       score
     };
@@ -189,7 +195,7 @@ async function readUploadedDocuments(): Promise<IndexedDocument[]> {
     return uploadedDocumentsCache.documents;
   }
 
-  let indexed: IndexedDocument[] = [];
+  let indexed: IndexedDocument[];
   const indexPath = path.join(UPLOAD_DIR, "index.json");
 
   try {
@@ -297,36 +303,10 @@ function uniqueEvidence(items: Evidence[]) {
   });
 }
 
-function clip(value: string, maxLength = 260) {
-  const normalized = value.replace(/\s+/g, " ").trim();
-  return normalized.length > maxLength ? `${normalized.slice(0, maxLength - 1).trim()}...` : normalized;
-}
-
 function buildDirectAnswer(question: string, evidence: Evidence[]) {
-  const q = question.toLowerCase();
-  const joined = evidence.map((item) => item.quote).join(" ");
-  const hasNumericProfile = /\b\d{2,3}\s*(?:micron|microns|Âµm|um)\b/i.test(joined);
-  const evidenceLines = evidence
-    .slice(0, 3)
-    .map((item) => `- ${item.filename}: ${clip(item.quote, 220)}`)
-    .join("\n");
-
-  if (q.includes("surface profile")) {
-    const numeric = joined.match(/\b\d{2,3}\s*(?:micron|microns|Âµm|um)\b/i)?.[0];
-    const profileValue = numeric ?? "no numeric surface-profile value is stated in the retrieved evidence";
-    return `Recommended SOP:\nMethod Statement for CS Pipe Internal Field Joint Coating & Coating Repair.\n\nReason:\nSurface preparation evidence is available, but ${profileValue}.\n\nEvidence:\n${evidenceLines}\n\nRelated Assets:\nCS pipe internal field joints and coating repair areas.\n\nConfidence:\n${hasNumericProfile ? "High" : "Moderate - cited evidence found, numeric value not detected."}`;
-  }
-
-  if (/\bsop\b|procedure|isolation|permit|before maintenance/i.test(q)) {
-    const primarySop = evidence.find((item) => /sop|procedure|isolation|loto|permit/i.test(item.filename + item.quote)) ?? evidence[0];
-    return `Recommended SOP:\n${primarySop.filename}\n\nReason:\nPump P101 maintenance requires permit-to-work, LOTO/isolation, drain verification, and zero-pressure confirmation before opening equipment.\n\nEvidence:\n${evidenceLines}\n\nRelated Assets:\n${inferAssets(joined)}\n\nConfidence:\nHigh - limited to cited procedure and checklist evidence.`;
-  }
-
-  if (/why|failed|failure|rca|root cause|repeated/i.test(q)) {
-    return `Recommended Finding:\nRepeated failure is linked to the cited operating and maintenance evidence.\n\nReason:\nThe records point to cavitation risk, low suction/NPSH conditions, seal instability, and possible alignment issues.\n\nEvidence:\n${evidenceLines}\n\nRelated Assets:\n${inferAssets(joined)}\n\nConfidence:\n${evidence.length >= 2 ? "High" : "Moderate"} - based only on cited evidence.`;
-  }
-
-  return `Direct Answer:\nBased only on the most relevant cited evidence found for this question.\n\nEvidence:\n${evidenceLines}\n\nRelated Assets:\n${inferAssets(joined)}\n\nConfidence:\n${evidence.length >= 2 ? "High" : "Moderate"} - source-cited answer.`;
+  const refusal = /approve|hot work|permit/i.test(question)
+    ? "AI cannot approve field work or waive a permit. Authorized engineering review and applicable permits are required.\n\n" : "";
+  return refusal + "Direct Answer:\nDemo mode — local extractive retrieval. These are source passages, not a confirmed causal analysis.\n\n" + evidence.map(item => `${item.filename}: ${item.quote}`).join("\n\n");
 }
 
 function inferAssets(text: string) {
@@ -352,6 +332,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ detail: "Question is required." }, { status: 400 });
     }
 
+    if (question.length > 2000) return NextResponse.json({ detail: "Question exceeds 2000 characters." }, { status: 400 });
+    if (modes().agent === 'lyzr' || modes().vector === 'qdrant') {
+      sameOrigin(request);
+      const scope = await identity(request); rateLimit(scope.sub + ':copilot', 10);
+      if (modes().agent !== 'lyzr') throw new IntegrationError('misconfigured', 'Qdrant Copilot requires the configured Lyzr workflow');
+      return NextResponse.json(await startWorkflow(question, scope));
+    }
     const documents = [...(await readDemoDocuments()), ...(await readUploadedDocuments())];
     const relevantDocuments = documents.filter((document) => documentMatchesQuestion(document, question));
     const searchDocuments = relevantDocuments.length ? relevantDocuments : documents;
@@ -365,6 +352,7 @@ export async function POST(request: Request) {
     if (!ranked.length) {
       return NextResponse.json({
         answer_id: `ans-${Date.now()}`,
+        provider: "local fallback", demo: true, human_review_required: true,
         direct_answer:
           documents.length === 0
             ? "No searchable evidence is available. Upload a text document or a PDF with selectable text in Engineering Docs. If evidence was previously available, check deployment storage and indexing."
@@ -384,45 +372,39 @@ export async function POST(request: Request) {
     }
 
     const directAnswer = buildDirectAnswer(question, ranked);
-    const surfaceProfileQuestion = question.toLowerCase().includes("surface profile");
-    const numericProfileFound = /\b\d{2,3}\s*(?:micron|microns|Âµm|um)\b/i.test(ranked.map((item) => item.quote).join(" "));
-    const confidence = surfaceProfileQuestion && !numericProfileFound ? 0.72 : ranked[0].score >= 4 ? 0.88 : 0.72;
+    const confidence = 0; // Uncalibrated local matching is not a confidence probability.
 
     return NextResponse.json({
       answer_id: `ans-${Date.now()}`,
+        provider: "local fallback", demo: true, human_review_required: true,
       direct_answer: directAnswer,
       documents_indexed: documents.length,
       confidence,
-      citations: ranked.map((item, index) => ({
-        document_id: index + 1,
-        chunk_id: index + 1,
+      citations: ranked.map((item) => ({
+        document_id: hash(item.filename),
+        chunk_id: hash(item.filename + item.quote),
         filename: item.filename,
         page_number: item.page_number,
         section: item.section,
         quote: item.quote,
-        confidence: Math.min(0.95, 0.62 + item.score * 0.08)
+        confidence: 0
       })),
       related_assets: Array.from(new Set(ranked.flatMap((item) => inferAssets(item.quote).split(", ")))).filter(Boolean),
       related_documents: Array.from(new Set(ranked.map((item) => item.filename))),
       suggested_next_actions: [
         "Review the cited document section before field execution.",
-        "Confirm whether the project specification states a numeric surface profile value.",
+        "Verify the cited source and review any inference before field execution.",
         "Attach inspection records or profile gauge readings if this is for approval."
       ],
-      evidence_strength: confidence >= 0.85 ? "high" : "moderate"
+      confidence_basis: "Not calibrated; demo local extractive matching",
+      evidence_strength: "source-cited demo"
     });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        detail: error instanceof Error ? error.message : "Copilot failed while searching uploaded evidence."
-      },
-      { status: 500 }
-    );
-  }
+  } catch (error) { return errorResponse(error); }
 }
 
 export async function GET() {
   try {
+    if (modes().agent === "lyzr" || modes().vector === "qdrant") return NextResponse.json(await healthReport());
     const [demoDocuments, uploadedDocuments] = await Promise.all([readDemoDocuments(), readUploadedDocuments()]);
 
     return NextResponse.json({
@@ -431,11 +413,11 @@ export async function GET() {
       uploaded_documents: uploadedDocuments.length,
       demo_documents: demoDocuments.length
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         status: "warming_failed",
-        detail: error instanceof Error ? error.message : "Unable to warm Copilot evidence index."
+        detail: "Unable to warm Copilot evidence index."
       },
       { status: 500 }
     );

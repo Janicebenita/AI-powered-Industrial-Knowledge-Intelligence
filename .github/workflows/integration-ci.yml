@@ -1,0 +1,35 @@
+name: Local integration verification
+on:
+  push:
+    branches: [main, feat/omi-qdrant-lyzr-integration]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      ENVIRONMENT: development
+      VOICE_PROVIDER: disabled
+      VECTOR_PROVIDER: legacy
+      AGENT_PROVIDER: local
+      ALLOW_DEMO_FALLBACK: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: corepack enable && corepack prepare pnpm@11.9.0 --activate
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm index:demo
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm start > /tmp/industrial-brain-server.log 2>&1 &
+      - run: node scripts/smoke-http.cjs
+      - run: docker build -t industrial-brain:verification ..

@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Bell, ChevronDown, Menu, Shield, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { navItems } from "@/lib/demo-data";
 import { cn } from "@/lib/utils";
 import { CommandSearch } from "@/components/platform/command-search";
@@ -73,7 +73,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </aside>
         <div className="min-w-0 pb-24 lg:pb-0">
           <Topbar />
-          <main className="mx-auto max-w-[1580px] px-4 py-5 md:px-6 lg:px-8">{children}</main>
+          <main className="mx-auto max-w-[1580px] px-4 py-5 md:px-6 lg:px-8"><div className="mb-4 rounded-xl border border-amber-300/20 bg-amber-400/5 p-3 text-xs text-amber-100">Demo data: dashboard, asset, graph, RCA, compliance and report examples are illustrative. Provider status and integration results are checked separately. AI output requires authorized engineering judgment.</div>{children}</main>
           <MobileNav pathname={pathname} />
         </div>
       </div>
@@ -91,11 +91,11 @@ function Topbar() {
         </Link>
         <CommandSearch />
         <button aria-label="Notifications" className="ml-auto grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/[0.06] text-slate-300 transition hover:border-cyan-300/30 hover:text-white md:ml-0"><Bell size={18} /></button>
-        <div className="hidden items-center gap-2 rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-3 py-2 text-sm font-semibold text-emerald-100 shadow-[0_0_22px_rgba(34,197,94,0.12)] sm:flex"><Sparkles size={15} /> AI online</div>
+        <div className="hidden items-center gap-2 rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-3 py-2 text-sm font-semibold text-emerald-100 shadow-[0_0_22px_rgba(34,197,94,0.12)] sm:flex"><Sparkles size={15} /> Provider status in Admin</div>
         <button className="hidden items-center gap-2 rounded-xl border border-cyan-400/25 bg-cyan-400/10 px-3 py-2 text-sm font-semibold text-cyan-100 shadow-[0_0_22px_rgba(0,212,255,0.10)] sm:flex"><Shield size={15} /> Plant A</button>
         <button className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 text-sm transition hover:border-cyan-300/30">
           <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-xs font-bold">PM</span>
-          <span className="hidden md:inline">Plant Manager</span>
+          <span className="hidden md:inline">Demo persona</span>
           <ChevronDown size={15} />
         </button>
       </div>

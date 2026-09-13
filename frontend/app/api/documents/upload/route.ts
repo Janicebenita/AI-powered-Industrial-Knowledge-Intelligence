@@ -1,3 +1,5 @@
+import { modes } from '@/lib/server/integrations/config';
+import { integratedUpload } from '@/lib/server/integrations/upload';
 import { mkdir, readFile, readdir, unlink, writeFile } from "fs/promises";
 import path from "path";
 import { UPLOAD_DIR } from "@/lib/server/evidence-paths";
@@ -103,7 +105,7 @@ async function extractText(file: File, bytes: Buffer) {
 
 async function appendToIndex(uploadDir: string, document: IndexedDocument) {
   const indexPath = path.join(uploadDir, "index.json");
-  let current: IndexedDocument[] = [];
+  let current: IndexedDocument[];
 
   try {
     current = JSON.parse(await readFile(indexPath, "utf8")) as IndexedDocument[];
@@ -130,7 +132,8 @@ async function writeIndex(uploadDir: string, documents: IndexedDocument[]) {
   await writeFile(path.join(uploadDir, "index.json"), JSON.stringify(documents, null, 2), "utf8");
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (modes().vector === "qdrant") return integratedUpload(request!);
   const uploadDir = UPLOAD_DIR;
   const documents = await readIndex(uploadDir);
   const indexedStoredNames = new Set(documents.map((document) => document.stored_filename));
@@ -167,6 +170,7 @@ export async function GET() {
 }
 
 export async function DELETE(request: Request) {
+  if (modes().vector === "qdrant") return integratedUpload(request);
   try {
     const uploadDir = UPLOAD_DIR;
     const storedFilename = new URL(request.url).searchParams.get("stored_filename");
@@ -191,7 +195,7 @@ export async function DELETE(request: Request) {
     const resolvedUploadDir = path.resolve(uploadDir);
     const resolvedStoredPath = path.resolve(storedPath);
 
-    if (!resolvedStoredPath.startsWith(resolvedUploadDir)) {
+    if (!resolvedStoredPath.startsWith(resolvedUploadDir + path.sep)) {
       return NextResponse.json({ detail: "Invalid stored filename." }, { status: 400 });
     }
 
@@ -211,10 +215,10 @@ export async function DELETE(request: Request) {
       filename: target.filename,
       stored_filename: target.stored_filename
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
-        detail: error instanceof Error ? error.message : "Unable to delete uploaded document."
+        detail: "Unable to delete uploaded document."
       },
       { status: 500 }
     );
@@ -222,6 +226,7 @@ export async function DELETE(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if (modes().vector === "qdrant") return integratedUpload(request);
   try {
     const formData = await request.formData();
     const file = formData.get("file");
@@ -234,6 +239,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ detail: "This deployment supports PDF, TXT, CSV, MD and LOG. Export other formats to text or a searchable PDF first." }, { status: 415 });
     }
 
+    if (file.size > 10 * 1024 * 1024) return NextResponse.json({ detail: "Upload exceeds 10 MiB" }, { status: 413 });
     const bytes = Buffer.from(await file.arrayBuffer());
 
     const uploadDir = UPLOAD_DIR;
@@ -274,16 +280,18 @@ export async function POST(request: Request) {
       stored_filename: storedName,
       doc_type: docType,
       chunks,
-      embeddings: chunks,
+      embeddings: 0,
+      provider: "local fallback",
+      demo: true,
       entities,
-      relationships: Math.max(entities.length - 1, 0),
+      relationships: 0,
       status: "processed",
       message: "Document uploaded and processed through the demo ingestion route."
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
-        detail: error instanceof Error ? error.message : "Upload failed during document ingestion."
+        detail: "Upload failed during document ingestion."
       },
       { status: 500 }
     );

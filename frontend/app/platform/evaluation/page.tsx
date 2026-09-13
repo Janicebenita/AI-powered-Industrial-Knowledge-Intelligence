@@ -1,19 +1,21 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertTriangle, BadgeCheck, BarChart3, CheckCircle2, Database, FileSearch, LucideIcon, ShieldCheck, Target } from "lucide-react";
 import { GlassCard, MetricCard } from "@/components/platform/cards";
 import { api } from "@/services/api";
 
 type EvaluationMetrics = {
+  provider?: string;
+  demo?: boolean;
   documents_processed: number;
-  entity_extraction_precision_estimate: number;
-  entity_extraction_recall_estimate: number;
-  chunk_retrieval_quality: number;
-  citation_coverage: number;
+  entity_extraction_precision_estimate: number | null;
+  entity_extraction_recall_estimate: number | null;
+  chunk_retrieval_quality: number | null;
+  citation_coverage: number | null;
   unanswered_due_to_insufficient_evidence: number;
-  compliance_gaps_found: number;
-  repeated_failure_patterns_detected: number;
+  compliance_gaps_found: number | null;
+  repeated_failure_patterns_detected: number | null;
 };
 
 const scoreItems = [
@@ -30,12 +32,13 @@ const guardrails: Array<{ icon: LucideIcon; title: string; body: string }> = [
   { icon: BarChart3, title: "Judge Proof", body: "One screen explains extraction quality, retrieval quality, gaps, and patterns." }
 ];
 
-function pct(value: number) {
+function pct(value: number | null) {
+  if (value === null) return "Not measured";
   return `${Math.round(value * 100)}%`;
 }
 
-function ScoreBar({ label, value, description }: { label: string; value: number; description: string }) {
-  const tone = value >= 0.9 ? "from-emerald-400 to-cyan-300" : value >= 0.78 ? "from-blue-500 to-cyan-400" : "from-amber-400 to-orange-500";
+function ScoreBar({ label, value, description }: { label: string; value: number | null; description: string }) {
+  const tone = (value ?? 0) >= 0.9 ? "from-emerald-400 to-cyan-300" : (value ?? 0) >= 0.78 ? "from-blue-500 to-cyan-400" : "from-amber-400 to-orange-500";
   return (
     <GlassCard>
       <div className="flex items-start justify-between gap-4">
@@ -46,7 +49,7 @@ function ScoreBar({ label, value, description }: { label: string; value: number;
         <BadgeCheck className="text-cyan-300" />
       </div>
       <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10">
-        <div className={`h-full rounded-full bg-gradient-to-r ${tone}`} style={{ width: `${Math.min(100, Math.max(0, value * 100))}%` }} />
+        <div className={`h-full rounded-full bg-gradient-to-r ${tone}`} style={{ width: `${Math.min(100, Math.max(0, (value ?? 0) * 100))}%` }} />
       </div>
       <p className="mt-3 text-sm leading-6 text-slate-400">{description}</p>
     </GlassCard>
@@ -75,10 +78,6 @@ export default function EvaluationPage() {
     };
   }, []);
 
-  const readiness = useMemo(() => {
-    if (!metrics) return 0;
-    return Math.round(((metrics.entity_extraction_precision_estimate + metrics.entity_extraction_recall_estimate + metrics.chunk_retrieval_quality + metrics.citation_coverage) / 4) * 100);
-  }, [metrics]);
 
   if (loading) {
     return (
@@ -100,7 +99,7 @@ export default function EvaluationPage() {
         <section>
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-300">Evaluation Metrics</p>
           <h1 className="mt-2 text-3xl font-black tracking-normal md:text-5xl">Evidence Quality Console</h1>
-          <p className="mt-3 max-w-3xl text-slate-400">Start the FastAPI backend, then refresh this page to load measured evaluation data from the real ingestion and RAG pipeline.</p>
+          <p className="mt-3 max-w-3xl text-slate-400">Sign in through Admin for integration metrics. Legacy demo metrics require the separate local FastAPI service.</p>
         </section>
         <GlassCard className="border-amber-400/30 bg-amber-400/10">
           <div className="flex items-start gap-3">
@@ -121,15 +120,15 @@ export default function EvaluationPage() {
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-300">Evaluation Metrics</p>
           <h1 className="mt-2 text-3xl font-black tracking-normal md:text-5xl">Evidence Quality Console</h1>
-          <p className="mt-3 max-w-3xl text-slate-400">Judge-facing proof that the platform measures entity extraction, retrieval, citations, compliance gaps, and refusal behavior from the operational data pipeline.</p>
+          <p className="mt-3 max-w-3xl text-slate-400">Recorded evidence and execution metrics. Unmeasured quality values remain unavailable; legacy estimates are demo data.</p>
         </div>
-        <div className="glass rounded-2xl px-4 py-3 text-sm text-emerald-200">Next-round readiness: {readiness}%</div>
+        <div className="glass rounded-2xl px-4 py-3 text-sm text-emerald-200">Provider: {metrics.provider || "Legacy demo"}</div>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Documents Processed" value={metrics.documents_processed} delta="Seeded and uploaded evidence corpus" tone="info" />
-        <MetricCard label="Compliance Gaps Found" value={metrics.compliance_gaps_found} delta="Mapped to checklist evidence" tone="warning" />
-        <MetricCard label="Repeated Failure Patterns" value={metrics.repeated_failure_patterns_detected} delta="Detected from work orders" tone="critical" />
+        <MetricCard label="Compliance Gaps Found" value={metrics.compliance_gaps_found ?? "Not measured"} delta="Mapped to checklist evidence" tone="warning" />
+        <MetricCard label="Repeated Failure Patterns" value={metrics.repeated_failure_patterns_detected ?? "Not measured"} delta="Detected from work orders" tone="critical" />
         <MetricCard label="Insufficient Evidence Refusals" value={metrics.unanswered_due_to_insufficient_evidence} delta="No-citation answers blocked" tone="success" />
       </section>
 
@@ -143,14 +142,14 @@ export default function EvaluationPage() {
             <Target className="text-cyan-300" />
             <div>
               <h2 className="text-lg font-bold">What The Metrics Mean</h2>
-              <p className="text-sm text-slate-400">These values are calculated from ingested documents, extracted entities, citation rows, compliance gaps, and maintenance failure patterns.</p>
+              <p className="text-sm text-slate-400">Integration totals come from scoped retained evidence and execution records. Legacy values are prototype/demo estimates.</p>
             </div>
           </div>
           <div className="grid gap-3 text-sm text-slate-300">
-            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4"><strong className="text-white">Precision estimate:</strong> validated industrial entities divided by extracted candidates.</div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4"><strong className="text-white">Recall estimate:</strong> known demo asset and failure-mode coverage found in the corpus.</div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4"><strong className="text-white">Retrieval quality:</strong> overlap between the question and cited chunks in the top evidence set.</div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4"><strong className="text-white">Citation coverage:</strong> cited answers divided by all generated answers with audit records.</div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4"><strong className="text-white">Precision estimate:</strong> requires a labelled validation set; not measured by the integrations.</div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4"><strong className="text-white">Recall estimate:</strong> requires labelled expected entities; not measured by the integrations.</div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4"><strong className="text-white">Retrieval quality:</strong> requires a relevance evaluation; do not infer it from vector similarity alone.</div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4"><strong className="text-white">Citation coverage:</strong> claims with validated citation IDs divided by all stored claims. This is not a correctness probability.</div>
           </div>
         </GlassCard>
 

@@ -1,3 +1,7 @@
+import { modes } from '@/lib/server/integrations/config';
+import { identity } from '@/lib/server/integrations/auth';
+import { audit } from '@/lib/server/integrations/state';
+import { errorResponse } from '@/lib/server/integrations/api';
 export const runtime = "nodejs";
 
 function escapePdfText(value: string) {
@@ -5,7 +9,7 @@ function escapePdfText(value: string) {
 }
 
 function buildPdf(assetTag: string) {
-  const title = `Industrial Brain AI - RCA Report ${assetTag}`;
+  const title = `DEMO DATA - RCA draft ${assetTag}`;
   const sections = [
     "Incident Summary",
     "Pump P101 experienced repeated mechanical seal failure with high vibration and cavitation-like operating conditions.",
@@ -18,7 +22,7 @@ function buildPdf(assetTag: string) {
     "Evidence Citations",
     "WO-10877_P101_vibration_repeat, WO-10421_mechanical_seal, FlowServe_P101_Manual, SOP_22_Pump_Isolation.",
     "Confidence",
-    "86% - source-cited RCA draft for engineering review."
+    "Not calibrated. Illustrative demo; no field authorization."
   ];
   const lines = [title, "", ...sections].map(escapePdfText);
   const contentLines = lines.map((line, index) => {
@@ -52,6 +56,7 @@ function buildPdf(assetTag: string) {
 }
 
 export async function POST(_request: Request, { params }: { params: Promise<{ assetTag: string }> }) {
+  if (modes().vector === "qdrant") { try { const scope = await identity(_request); await audit.record(scope, "export.demo_rca", "demo-report", "Illustrative report, not operational approval"); } catch (error) { return errorResponse(error); } }
   const { assetTag } = await params;
   const safeAssetTag = assetTag.replace(/[^\w-]+/g, "_");
   const pdf = buildPdf(safeAssetTag);

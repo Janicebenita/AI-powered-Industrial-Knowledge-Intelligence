@@ -1,0 +1,5 @@
+const assert=require('node:assert/strict');
+require('./register-typescript.cjs');
+const {demoQuestions}=require('../lib/demo-data.ts');
+const ask=require('../app/api/copilot/ask/route.ts');
+(async()=>{for(const {question} of demoQuestions){const r=await ask.POST(new Request('http://localhost/api/copilot/ask',{method:'POST',body:JSON.stringify({question}),headers:{'Content-Type':'application/json'}}));assert.equal(r.status,200,question);const answer=await r.json();assert.equal(answer.provider,'local fallback');assert.equal(answer.human_review_required,true);assert.ok(answer.citations.length>0||answer.evidence_strength==='insufficient');if(/approve hot work/i.test(question))assert.match(answer.direct_answer,/cannot approve|No matching|No searchable/i);console.log('PASS '+question+' ('+answer.citations.length+' citations)');}console.log('PASS all '+demoQuestions.length+' legacy judge questions; extractive demo mode, no live provider claim');})().catch(e=>{console.error(e);process.exitCode=1;});

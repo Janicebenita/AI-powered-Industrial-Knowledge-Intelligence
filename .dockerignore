@@ -1,0 +1,14 @@
+.git
+**/node_modules
+**/.next
+**/.venv
+**/__pycache__
+**/.env
+**/.env.*
+**/*.local.json
+**/.integration-data
+**/.uploads
+**/*.log
+backend/app/data
+backend/app/uploads
+docs/*.mp4

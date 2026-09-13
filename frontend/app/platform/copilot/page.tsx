@@ -1,36 +1,34 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useState } from "react";
+import { AgenticIntegrations } from "@/components/platform/agentic-integrations";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { AlertTriangle, Bot, CheckCircle2, FileSearch, Loader2, Radio, Send, ShieldCheck, Sparkles } from "lucide-react";
+import { AlertTriangle, Bot, CheckCircle2, FileSearch, Loader2, Radio, Send, ShieldCheck } from "lucide-react";
 import { GlassCard, MetricCard } from "@/components/platform/cards";
 import { CitationCard } from "@/components/platform/citation-card";
 import { demoQuestions } from "@/lib/demo-data";
 
-type StaticAnswer = {
-  match: string[];
-  confidence: string;
-  evidence: string;
-  answer: string;
-  context: string[];
-  citations: { title: string; page: string; confidence: number; quote: string }[];
-};
-
 type CopilotCitation = {
-  document_id: number;
-  chunk_id: number;
+  document_id: number | string;
+  chunk_id: number | string;
+  source_url?: string;
   filename: string;
-  page_number: number;
+  page_number: number | null;
   section: string;
   quote: string;
-  confidence: number;
+  confidence: number | null;
 };
 
 type CopilotResponse = {
+  provider?: string;
+  confidence_basis?: string;
+  citation_coverage?: number;
+  human_review_required?: boolean;
+  execution?: { id: string; status: string; steps: { name: string; status: string; provider: string }[] };
   answer_id: string;
   documents_indexed?: number;
   direct_answer: string;
-  confidence: number;
+  confidence: number | null;
   citations: CopilotCitation[];
   related_assets: string[];
   related_documents: string[];
@@ -57,67 +55,8 @@ const aiChips = [
   "Find Similar Incident"
 ];
 
-const answers: Record<string, StaticAnswer> = {
-  pump: {
-    match: ["pump p101", "failed repeatedly", "seal failure"],
-    confidence: "86%",
-    evidence: "High",
-    answer:
-      "Pump P101 shows repeated seal failure and vibration anomaly patterns. The strongest cited contributors are low suction pressure, suction strainer fouling, cavitation, and possible shaft misalignment after prior maintenance. Field technicians should first verify suction strainer differential pressure, seal flush flow, coupling alignment, and vibration trend history before replacing the seal again.",
-    context: ["P101 - Condensate Transfer Pump", "Risk score 88", "Open RCA requested", "ISO-14224 partial evidence"],
-    citations: [
-      { title: "WO-10877_P101_vibration_repeat.pdf", page: "p.1", confidence: 92, quote: "Repeated vibration and seal failure observed. Operator reported intermittent cavitation noise and suction strainer fouling." },
-      { title: "WO-10421_mechanical_seal.pdf", page: "p.2", confidence: 88, quote: "Root cause note: possible shaft misalignment after prior outage and low suction pressure causing cavitation." },
-      { title: "FlowServe_P101_Manual.txt", page: "Troubleshooting", confidence: 94, quote: "High vibration may be caused by cavitation, misalignment, bearing wear, impeller imbalance, suction restriction, or operation outside preferred operating range." }
-    ]
-  },
-  vessel: {
-    match: ["v203", "vessel", "opening"],
-    confidence: "91%",
-    evidence: "High",
-    answer:
-      "Before opening Pressure Vessel V203, the applicable procedure is SOP-VES-203 Vessel Opening and Confined Space Entry, supported by the plant LOTO procedure and permit-to-work requirements. The work pack must include isolation blinds, zero pressure verification, gas test, confined space permit, rescue plan, and safety officer approval. The evidence also shows an OISD/API pressure vessel inspection gap, so the inspection certificate should be attached before release.",
-    context: ["V203 - Knockout Drum", "Permit required", "Confined space controls", "Pressure test evidence partial"],
-    citations: [
-      { title: "SOP-VES-203_pressure_vessel_entry.txt", page: "Revision 4", confidence: 94, quote: "Before opening vessel V-203, safety officer must verify isolation blinds, gas test, confined space permit, rescue plan, and zero pressure." },
-      { title: "near_miss_report.txt", page: "NM-2026-07", confidence: 86, quote: "Maintenance crew approached V203 for opening activity before rescue plan evidence was attached to the permit-to-work package." },
-      { title: "OISD_Checklist.csv", page: "OISD-STD-118", confidence: 89, quote: "Pressure vessel inspection and test evidence must be current. Applies to V203. Evidence status: Missing." }
-    ]
-  },
-  technician: {
-    match: ["field technician", "check first", "technician"],
-    confidence: "84%",
-    evidence: "Medium-High",
-    answer:
-      "For a field technician responding to Pump P101, the first checks should be safety isolation readiness, suction strainer differential pressure, suction pressure/NPSH condition, seal flush flow, visible leakage around the mechanical seal, and vibration trend. Do not open the casing until lockout tagout, valve isolation, drain verification, zero pressure, and permit-to-work evidence are complete.",
-    context: ["P101 first-response checklist", "LOTO mandatory", "Seal flush and suction checks", "Technician sign-off required"],
-    citations: [
-      { title: "SOP_22_Pump_Isolation.txt", page: "Steps 1-7", confidence: 96, quote: "Apply lockout tagout, close suction and discharge isolation valves, drain casing, verify zero pressure, and isolate seal flush line." },
-      { title: "inspection_report_P101.txt", page: "Process parameters", confidence: 87, quote: "Suction pressure was 1.2 bar, vibration was 7.8 mm/s RMS, and seal flush flow was below OEM recommendation." },
-      { title: "FlowServe_P101_Manual.txt", page: "Preventive maintenance", confidence: 91, quote: "Inspect suction strainer differential pressure, verify mechanical seal flush, inspect impeller wear, and trend vibration monthly." }
-    ]
-  },
-  compliance: {
-    match: ["regulatory", "requirements", "not covered", "compliance"],
-    confidence: "79%",
-    evidence: "Moderate",
-    answer:
-      "The uncovered or partially covered regulatory requirements are OISD-STD-118 for V203 pressure vessel inspection/test evidence, OISD-244-ELECT for EP501 energized electrical work and arc flash evidence, OISD-INS-HX for HX401 heat exchanger corrosion closure, and partial OISD-105-PTW evidence for P101 permit-to-work. These should be treated as audit readiness gaps until source documents are attached.",
-    context: ["4 compliance gaps", "V203, EP501, HX401, P101", "Audit readiness partial", "Evidence package required"],
-    citations: [
-      { title: "OISD_Checklist.csv", page: "Checklist rows", confidence: 90, quote: "V203 pressure vessel inspection evidence missing, EP501 electrical controls missing, HX401 inspection closure partial, and P101 permit-to-work partial." },
-      { title: "Factory_Act_Requirements.txt", page: "Detected gaps", confidence: 82, quote: "V203 pressure test evidence missing. EP501 arc flash evidence missing. HX401 quality non-conformance QA12 remains open." },
-      { title: "quality_issue_QA12.txt", page: "QA12", confidence: 78, quote: "Inspection non-conformance remains open. Pressure test documentation and coating repair photographs are required." }
-    ]
-  }
-};
-
-function getFallbackAnswer(question: string) {
-  const normalized = question.toLowerCase();
-  return Object.values(answers).find((answer) => answer.match.some((term) => normalized.includes(term))) || answers.pump;
-}
-
-function confidencePercent(value: number) {
+function confidencePercent(value: number | null) {
+  if (value === null) return 0;
   return Math.round(value <= 1 ? value * 100 : value);
 }
 
@@ -136,55 +75,29 @@ function extractAnswerBlock(text: string, labels: string[]) {
   return match?.[2]?.trim() || "";
 }
 
-function inferRecommendedSop(question: string, answer: string, documents: string[]) {
-  const sourceText = `${question} ${answer} ${documents.join(" ")}`.toLowerCase();
-  const sopDocument = documents.find((document) => /sop|procedure|loto|isolation|permit/i.test(document));
-
-  if (sopDocument) {
-    return sopDocument;
-  }
-  if (sourceText.includes("v203") || sourceText.includes("v-203") || sourceText.includes("vessel")) {
-    return "SOP-VES-203 Pressure Vessel Opening and Confined Space Entry";
-  }
-  if (sourceText.includes("p101") || sourceText.includes("p-101") || sourceText.includes("pump")) {
-    return "SOP_22_Pump_Isolation.txt";
-  }
-  if (sourceText.includes("electrical") || sourceText.includes("arc flash") || sourceText.includes("ep501")) {
-    return "LOTO_Procedure.txt";
-  }
-  if (sourceText.includes("method statement") || sourceText.includes("mst") || sourceText.includes("coating repair") || sourceText.includes("surface profile")) {
-    return "Method Statement for CS Pipe Internal Field Joint Coating & Coating Repair";
-  }
-  return "No specific SOP identified from cited evidence";
-}
-
 function buildAnswerSection({
-  question,
   answerText,
   citations,
   confidence,
-  response,
-  fallback
+  response
 }: {
-  question: string;
   answerText: string;
   citations: Array<{ title: string; quote: string }>;
   confidence: string;
   response: CopilotResponse | null;
-  fallback: StaticAnswer;
 }): AnswerSection {
   const insufficient = response?.evidence_strength === "insufficient" || citations.length === 0;
   const relatedAssets = insufficient
     ? []
     : response?.related_assets?.length
     ? response.related_assets
-    : fallback.context.filter((item) => /\b(P|C|B|HX|V|EP)-?\d{3}\b|P101|V203|EP501|HX401|C201|B203/i.test(item));
+    : [];
   const evidence = citations.length
     ? citations.slice(0, 3).map((citation) => `${citation.title}: ${clipText(citation.quote)}`)
     : ["No source citation was returned. Ask a narrower question or upload the missing evidence document."];
   const answer =
     extractAnswerBlock(answerText, ["Recommended SOP", "Recommended Finding", "Direct Answer"]) ||
-    (insufficient ? "Insufficient cited evidence" : inferRecommendedSop(question, answerText, citations.map((citation) => citation.title)));
+    (insufficient ? "Insufficient cited evidence" : answerText);
   const reason = extractAnswerBlock(answerText, ["Reason"]) || (insufficient ? answerText : "Derived only from matched source citations.");
   const parsedConfidence = extractAnswerBlock(answerText, ["Confidence"]);
 
@@ -266,7 +179,7 @@ export default function CopilotPage() {
       .then(async (result) => {
         if (!result.ok) throw new Error("Evidence index unavailable");
         const health = await result.json();
-        if (active) setDocumentCount(health.documents_indexed);
+        if (active) setDocumentCount(typeof health.documents_indexed === "number" ? health.documents_indexed : null);
       })
       .catch(() => { if (active) setDocumentCount(null); })
       .finally(() => {
@@ -278,14 +191,7 @@ export default function CopilotPage() {
     };
   }, []);
 
-  useEffect(() => {
-    const queryQuestion = searchParams.get("question");
-    if (queryQuestion && !asked && !isAsking) {
-      void askCopilot(queryQuestion);
-    }
-  }, [searchParams, asked, isAsking]);
-
-  async function askCopilot(nextQuestion = question) {
+  const askCopilot = useCallback(async (nextQuestion = question) => {
     const trimmed = nextQuestion.trim();
     if (!trimmed) {
       setError("Enter a question before asking the copilot.");
@@ -318,7 +224,15 @@ export default function CopilotPage() {
     } finally {
       setIsAsking(false);
     }
-  }
+  }, [question]);
+
+  useEffect(() => {
+    const queryQuestion = searchParams.get("question");
+    if (queryQuestion && !asked && !isAsking) {
+      void askCopilot(queryQuestion);
+    }
+  }, [searchParams, asked, isAsking, askCopilot]);
+
 
   const indexLabel = isWarming ? "Checking evidence..." : documentCount === null ? "Evidence index unavailable" : documentCount === 0 ? "No evidence indexed" : `${documentCount} documents searchable`;
   const answerText = response?.direct_answer ?? "";
@@ -326,15 +240,16 @@ export default function CopilotPage() {
     ? response.citations.map((citation, index) => ({
         id: `${citation.document_id}-${citation.chunk_id}-${index}`,
         title: citation.filename,
-        page: `${citation.section || "Source"} - p.${citation.page_number}`,
+        sourceUrl: citation.source_url,
+        page: citation.page_number ? `${citation.section || "Source"} - p.${citation.page_number}` : citation.section || "Source passage",
         confidence: confidencePercent(citation.confidence),
         quote: citation.quote
       }))
     : [];
-  const confidence = response ? `${confidencePercent(response.confidence)}%` : "0%";
+  const confidence = response?.confidence ? `${confidencePercent(response.confidence)}%` : "Not calibrated";
   const evidence = response ? response.evidence_strength : "No question asked";
   const structuredAnswer = response
-    ? buildAnswerSection({ question, answerText, citations, confidence, response, fallback: getFallbackAnswer(question) })
+    ? buildAnswerSection({ answerText, citations, confidence, response })
     : null;
   const context = response
     ? [
@@ -346,6 +261,7 @@ export default function CopilotPage() {
 
   return (
     <div className="grid min-w-0 gap-5 xl:grid-cols-[300px_minmax(0,1fr)] 2xl:grid-cols-[300px_minmax(0,1fr)_330px]">
+      <div className="col-span-full"><AgenticIntegrations controls />{response && <div role="status" className="mt-3 rounded-xl border border-white/10 p-3 text-sm"><p>Result provider: {response.provider || "unavailable"} · Human review required</p><p>{response.confidence_basis || "Local demo matching is not calibrated confidence."}</p>{response.citation_coverage !== undefined && <p>Citation coverage: {Math.round(response.citation_coverage * 100)}%</p>}{response.execution && <><p>Execution {response.execution.id}: {response.execution.status}</p>{response.execution.steps.map((step, index) => <p key={index}>{step.name}: {step.status} ({step.provider})</p>)}</>}<p className="whitespace-pre-wrap">{response.direct_answer}</p></div>}</div>
       <GlassCard className="h-fit rounded-[1.75rem]">
         <h2 className="mb-4 font-semibold">Conversation History</h2>
         {demoQuestions.map(({ category, question: item }) => (

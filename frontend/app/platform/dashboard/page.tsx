@@ -24,7 +24,7 @@ const evidenceItems = [
 ] as const;
 
 const plantStatus = [
-  ["Plant Status", "Healthy", "success"],
+  ["Plant Status", "Demo: nominal", "success"],
   ["Intelligence Score", "97%", "info"],
   ["Today's Insights", "7", "warning"],
   ["Critical Risks", "2", "critical"],
@@ -50,7 +50,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="floating grid gap-3 rounded-[1.75rem] border border-white/10 bg-[#081320]/62 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
-            <div className="flex items-center justify-between gap-3"><StatusBadge value="Healthy" /><span className="text-sm text-cyan-200">AI citations enforced</span></div>
+            <div className="flex items-center justify-between gap-3"><StatusBadge value="Demo: nominal" /><span className="text-sm text-cyan-200">Demo evidence view</span></div>
             <div className="grid grid-cols-2 gap-3">
               {plantStatus.map(([label, value, tone]) => (
                 <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.055] p-3">

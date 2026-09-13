@@ -15,6 +15,11 @@ node_modules/
 __pycache__/
 *.pyc
 .env
+.env.*
+!.env.example
+.venv/
+.integration-data/
+*.local.json
 demo-data/.copilot-index.json
 backend/*.log
 backend/*.out.log
