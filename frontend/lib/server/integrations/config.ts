@@ -33,5 +33,5 @@ export function validateConfig() {
     const dimension = Number(required('EMBEDDING_DIMENSION'));
     if (!Number.isInteger(dimension) || dimension < 1 || dimension > 65536) throw new IntegrationError('misconfigured','Invalid EMBEDDING_DIMENSION');
   }
-  if (m.agent === 'lyzr') { required('LYZR_API_KEY'); required(lyzrAgentMode()?'LYZR_AGENT_ID':'LYZR_WORKFLOW_ID'); baseUrl('LYZR_API_BASE_URL','https://agent-prod.studio.lyzr.ai'); if(!lyzrAgentMode())baseUrl('APP_BASE_URL'); }
+  if (m.agent === 'lyzr') { if(lyzrAgentMode())required('LYZR_VERIFIER_AGENT_ID'); required('LYZR_API_KEY'); required(lyzrAgentMode()?'LYZR_AGENT_ID':'LYZR_WORKFLOW_ID'); baseUrl('LYZR_API_BASE_URL','https://agent-prod.studio.lyzr.ai'); if(!lyzrAgentMode())baseUrl('APP_BASE_URL'); }
 }

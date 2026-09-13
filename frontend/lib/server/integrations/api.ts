@@ -4,7 +4,7 @@ import { IntegrationError,env,modes,production } from './config';
 import { providers,healthReport } from './factory';
 import { normalizeConversation } from './omi';
 import { auditEvent,readState,sameScope,transaction } from './state';
-import { chunksFor,indexEvidence,requireOmiScope } from './ingestion';
+import { observationEvidence,indexEvidence,requireOmiScope } from './ingestion';
 import { specialistNames,workflowCapability,resultFor } from './workflow';
 export function errorResponse(error:unknown) { return NextResponse.json({provider:'unavailable',detail:error instanceof IntegrationError?error.message:'Integration request failed',code:error instanceof IntegrationError?error.code:'internal_error'},{status:error instanceof IntegrationError?error.status:500}); }
 export async function integrationApi(request:Request,parts:string[]) {
@@ -50,7 +50,8 @@ export async function integrationApi(request:Request,parts:string[]) {
         const decision=parts[3]==='approve'?'approved':'rejected';
         await transaction(s=>{const o=s.observations.find(o=>o.id===id)!;if(o.status!=='pending'&&o.status!==decision)throw new IntegrationError('conflict','Observation already reviewed',409);if(o.status==='pending'){o.status=decision;o.reviewed_by=scope.sub;o.reviewed_at=new Date().toISOString();auditEvent(s,scope,'record.'+decision,id);}});
         if(decision==='approved') {
-          const evidence=chunksFor(record.transcript,{document_id:id,filename:`Omi conversation ${record.conversation_id}`,doc_type:'Approved operational observation',timestamp:record.timestamp,omi_conversation_id:record.conversation_id},scope);
+          const approved=(await readState()).observations.find(o=>o.id===id)!;
+          const evidence=observationEvidence(approved,scope);
           try {await indexEvidence(evidence,scope);await transaction(s=>{s.observations.find(o=>o.id===id)!.indexing='indexed';});}catch(e){await transaction(s=>{s.observations.find(o=>o.id===id)!.indexing='failed';});throw e;}
         }
         return NextResponse.json((await readState()).observations.find(o=>o.id===id));

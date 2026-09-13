@@ -3,24 +3,26 @@ import { requestJson } from './http';
 import { checkHealth } from './provider-health';
 import type { AgentOrchestratorProvider } from './contracts';
 export class LyzrProvider implements AgentOrchestratorProvider {
+  constructor(private agentVariable:'LYZR_AGENT_ID'|'LYZR_VERIFIER_AGENT_ID'='LYZR_AGENT_ID') {}
+  private get direct() {return this.agentVariable==='LYZR_VERIFIER_AGENT_ID'||lyzrAgentMode();}
   private get modern() { return env('LYZR_API_MODE') !== 'v3'; }
-  private base() { return baseUrl('LYZR_API_BASE_URL',this.modern&&!lyzrAgentMode()?'https://inference.studio.lyzr.ai':'https://agent-prod.studio.lyzr.ai'); }
+  private base() { return baseUrl('LYZR_API_BASE_URL',this.modern&&!this.direct?'https://inference.studio.lyzr.ai':'https://agent-prod.studio.lyzr.ai'); }
   private url() { return this.base()+(this.modern?'/api/workflows/':'/v3/workflows/')+encodeURIComponent(required('LYZR_WORKFLOW_ID')); }
-  async health() { return checkHealth('lyzr',async()=>{
-    if(lyzrAgentMode()) {
-      const agent=await requestJson<{_id:string;is_active:boolean;managed_agents?:unknown[]}>('Lyzr',this.base()+'/v3/agents/'+encodeURIComponent(required('LYZR_AGENT_ID')),{headers:{'x-api-key':required('LYZR_API_KEY')}});
-      if(agent._id!==required('LYZR_AGENT_ID')||agent.is_active!==true)throw new IntegrationError('unavailable','Configured Lyzr agent is absent or inactive');
-      return {agent:'…'+required('LYZR_AGENT_ID').slice(-4),detail:`Authenticated active agent read succeeded; ${Array.isArray(agent.managed_agents)?agent.managed_agents.length:0} configured managed agents. Inference and specialist execution are not verified by this probe.`};
+  async health() { return checkHealth(this.agentVariable==='LYZR_VERIFIER_AGENT_ID'?'lyzr_verifier':'lyzr',async()=>{
+    if(this.direct) {
+      const agent=await requestJson<{_id:string;is_active:boolean;managed_agents?:unknown[]}>('Lyzr',this.base()+'/v3/agents/'+encodeURIComponent(required(this.agentVariable)),{headers:{'x-api-key':required('LYZR_API_KEY')}});
+      if(agent._id!==required(this.agentVariable)||agent.is_active!==true)throw new IntegrationError('unavailable','Configured Lyzr agent is absent or inactive');
+      return {agent:'…'+required(this.agentVariable).slice(-4),detail:`Authenticated active agent read succeeded; ${Array.isArray(agent.managed_agents)?agent.managed_agents.length:0} configured managed agents. Inference and specialist execution are not verified by this probe.`};
     }
     const result=await requestJson<Record<string,unknown>>('Lyzr',this.url(),{headers:{'x-api-key':required('LYZR_API_KEY')}});
     if(!result || typeof result!=='object' || !result.flow_data) throw new IntegrationError('invalid_response','Lyzr workflow response missing flow_data');
     return {workflow:'…'+required('LYZR_WORKFLOW_ID').slice(-4),detail:'Authenticated workflow read succeeded; execution not tested by this read probe'};
   }); }
   async execute(input:Record<string,unknown>) {
-    if(lyzrAgentMode()) {
+    if(this.direct) {
       if(typeof input.execution_id!=='string'||typeof input.user_id!=='string')throw new IntegrationError('invalid_input','Agent execution and scoped user IDs required',400);
-      const session_id=required('LYZR_AGENT_ID')+'-'+input.execution_id;
-      const result=await requestJson<{response:unknown}>('Lyzr',this.base()+'/v3/inference/chat/',{method:'POST',headers:{'x-api-key':required('LYZR_API_KEY'),'Content-Type':'application/json'},body:JSON.stringify({user_id:input.user_id,agent_id:required('LYZR_AGENT_ID'),session_id,message:JSON.stringify(input)})},false,45000);
+      const session_id=required(this.agentVariable)+'-'+input.execution_id;
+      const result=await requestJson<{response:unknown}>('Lyzr',this.base()+'/v3/inference/chat/',{method:'POST',headers:{'x-api-key':required('LYZR_API_KEY'),'Content-Type':'application/json'},body:JSON.stringify({user_id:input.user_id,agent_id:required(this.agentVariable),session_id,message:JSON.stringify(input)})},false,45000);
       let output=result.response;
       if(typeof output==='string'){try{output=JSON.parse(output);}catch{throw new IntegrationError('invalid_response','Lyzr agent response must be a JSON claims object; configure its output contract');}}
       if(!output||typeof output!=='object'||Array.isArray(output))throw new IntegrationError('invalid_response','Lyzr agent returned no structured object');

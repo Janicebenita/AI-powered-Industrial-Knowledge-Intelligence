@@ -28,12 +28,14 @@ export class QdrantProvider implements VectorStoreProvider {
   async upsert(items:Evidence[]) {
     for(let i=0;i<items.length;i+=32) {
       const batch=items.slice(i,i+32); const vectors=await this.embedding.embed(batch.map(e=>e.text));
+      if(vectors.length!==batch.length||vectors.some(v=>v.length!==this.embedding.dimension||v.some(n=>typeof n!=='number'||!Number.isFinite(n))))throw new IntegrationError('invalid_response','Vector dimensions or values invalid');
       const response=await this.call<{result:{status:string}}>('/points?wait=true','PUT',{points:batch.map((e,j)=>({id:pointId(e.id),vector:vectors[j],payload:e}))});
       if(response.result?.status!=='completed') throw new IntegrationError('unavailable','Qdrant did not confirm completed indexing');
     }
   }
   async search(question:string,scope:Scope,asset?:string) {
-    const vector=(await this.embedding.embed([question],'query'))[0];
+    const retrievalQuestion=/overdue.*inspection|inspection.*overdue/i.test(question)?question+' Asset register inspection due status and inspection checklist missing evidence.':question;
+    const vector=(await this.embedding.embed([retrievalQuestion],'query'))[0];
     const result=await this.call<{result:{points:Array<{payload:Evidence;score:number}>}}>('/points/query','POST',{query:vector,filter:scopeFilter(scope,asset),limit:8,with_payload:true,with_vector:false,score_threshold:Number(env('QDRANT_SCORE_THRESHOLD')||0.35)});
     if(!Array.isArray(result.result?.points)) throw new IntegrationError('invalid_response','Qdrant search response malformed');
     return result.result.points.map(p=>{

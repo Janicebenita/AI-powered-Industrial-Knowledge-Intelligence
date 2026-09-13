@@ -1,7 +1,7 @@
 import { hash,transaction,auditEvent } from './state';
 import { providers } from './factory';
 import { omiAssignment,IntegrationError } from './config';
-import type { Evidence,Scope } from './contracts';
+import type { Evidence,Scope,Observation } from './contracts';
 export function chunksFor(text:string,metadata:{document_id:string;filename:string;doc_type:string;timestamp?:string|null;omi_conversation_id?:string;page_number?:number|null;section?:string},scope:Scope):Evidence[] {
   const chunks:Evidence[]=[];
   for(let start=0;start<text.length;start+=900) {
@@ -18,3 +18,7 @@ export async function indexEvidence(items:Evidence[],scope:Scope) {
   catch(e) { await transaction(s=>auditEvent(s,scope,'qdrant.indexing.failed',items[0].document_id)); throw e; }
 }
 export function requireOmiScope(scope:Scope) { if(scope.tenant!==omiAssignment().tenant || scope.plant!==omiAssignment().plant) throw new IntegrationError('forbidden','Omi account is not assigned to this tenant and plant',403); }
+
+export function observationEvidence(record:Observation,scope:Scope):Evidence[] {
+  return chunksFor(record.transcript,{document_id:record.id,filename:`Omi conversation ${record.conversation_id}`,doc_type:record.demonstration_data?'Simulated demonstration observation':'Approved operational observation',timestamp:record.timestamp,omi_conversation_id:record.conversation_id},scope).map(e=>({...e,asset_tag:record.asset_tag,source_id:record.source_id,source_provider:'omi',demonstration_data:record.demonstration_data,classification:record.classification,operational_authorization:false,provenance:record.provenance,approval:{actor:record.reviewed_by!,at:record.reviewed_at!,purpose:'Evidence review only; no operational work authorized'}}));
+}
