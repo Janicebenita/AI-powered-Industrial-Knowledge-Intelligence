@@ -104,23 +104,59 @@ What recurring safety risks exist in the plant?
 
 ```mermaid
 flowchart TD
-    A[Industrial Documents] --> B[Document Intelligence]
-    B --> C[Entity Extraction]
-    C --> D[Knowledge Graph]
-    C --> E[Vector Search]
-    D --> F[Multi-Agent AI]
-    E --> F
-    F --> G[Industrial Copilot]
-    F --> H[Asset 360]
-    F --> I[RCA]
-    F --> J[Compliance]
-    F --> K[Executive Dashboard]
+    A["Industrial Documents and Records"] --> C["Document Intelligence"]
+    B["Omi Voice Conversations"] --> C
+
+    C --> D["Transcription, Chunking and Entity Extraction"]
+    D --> E["Qdrant Vector Knowledge Store"]
+    D --> F["Asset Knowledge Graph"]
+
+    E --> G["Lyzr Multi-Agent Orchestrator"]
+    F --> G
+
+    G --> H["Evidence Retrieval Agent"]
+    G --> I["Asset and RCA Agent"]
+    G --> J["Compliance and Safety Agent"]
+
+    H --> K["Evidence Verification and Citations"]
+    I --> K
+    J --> K
+
+    K --> L{"Human Review Required?"}
+    L -->|Yes| M["Authorized Engineer Approval"]
+    L -->|No| N["Approved AI Response"]
+    M --> N
+
+    N --> O["Industrial Copilot"]
+    N --> P["Asset 360 and RCA"]
+    N --> Q["Compliance Intelligence"]
+    N --> R["Executive Dashboard"]
+
+    O --> S["Audit Trail and Operational Memory"]
+    P --> S
+    Q --> S
+    R --> S
+
+    S --> E
 ```
+
+### 🔄 Unified Agentic Execution Loop
+
+1. **Omi** captures voice-based inspections, maintenance observations, shift handovers and engineering discussions.
+2. **Document Intelligence** processes uploaded documents and Omi conversations into structured, searchable knowledge.
+3. **Qdrant** stores embedded evidence with metadata such as plant, asset tag, document type, date and access role.
+4. **Lyzr** orchestrates specialist agents for evidence retrieval, asset investigation, root-cause analysis, compliance and safety.
+5. **Evidence verification** checks whether every important conclusion is supported by retrieved source records.
+6. **Human approval** governs high-impact maintenance, RCA, compliance and safety recommendations.
+7. Approved outputs are delivered through the Industrial Copilot, Asset 360, RCA, Compliance Intelligence and Executive Dashboard.
+8. The resulting audit records and validated operational knowledge are returned to the searchable memory layer.
 
 <p align="center">
   <b>🏭 Industrial Brain AI</b><br/>
-  Transforming Industrial Knowledge into Operational Excellence.
+  Voice-first, memory-backed industrial intelligence powered by Omi, Qdrant and Lyzr.<br/>
+  Transforming fragmented operational knowledge into governed, evidence-grounded action.
 </p>
+
 ## 🛠 Technology Stack
 
 ### 🎨 Frontend
