@@ -11,6 +11,7 @@ export async function integrationApi(request:Request,parts:string[]) {
   try {
     const method=request.method; const route=parts.join('/');
     if(method!=='GET')sameOrigin(request);
+    if(env('STAGING_READ_ONLY')==='true'&&method!=='GET'&&(parts[0]==='omi'||parts[0]==='qdrant'))throw new IntegrationError('forbidden','Record changes disabled in disposable staging',403);
     if(route==='health' && method==='GET')return NextResponse.json(await healthReport());
     if(route==='session' && method==='POST') {
       rateLimit('login',10);const body=await bodyObject(request); const token=await login(textField(body.email,'email',200),textField(body.password,'password',200));
@@ -59,7 +60,7 @@ export async function integrationApi(request:Request,parts:string[]) {
     }
     if(route==='qdrant/initialize'&&method==='POST') { if(env('ALLOW_EXTERNAL_RESOURCE_CREATION')!=='true')throw new IntegrationError('approval_required','Collection initialization requires prior external-resource approval',403);await providers().vector.initialize();await transaction(s=>auditEvent(s,scope,'qdrant.collection.initialized',env('QDRANT_COLLECTION')));return NextResponse.json(await providers().vector.health()); }
     if(route==='qdrant/reindex'&&method==='POST') {const items=(await readState()).documents.filter(e=>sameScope(e,scope));await indexEvidence(items,scope);return NextResponse.json({provider:'qdrant',acknowledged_chunks:items.length});}
-    if(parts[0]==='evidence'&&method==='GET') {const item=(await readState()).documents.find(e=>e.id===parts[1]&&sameScope(e,scope)&&e.permission_scope.some(r=>r==='plant'||r===scope.role));if(!item)throw new IntegrationError('not_found','Evidence not found',404);return NextResponse.json(item);}
+    if(parts[0]==='evidence'&&method==='GET') {const item=(await readState()).documents.concat((await readState()).executions.flatMap(r=>r.evidence)).find(e=>e.id===parts[1]&&sameScope(e,scope)&&e.permission_scope.some(r=>r==='plant'||r===scope.role));if(!item)throw new IntegrationError('not_found','Evidence not found',404);return NextResponse.json(item);}
     if(route==='executions'&&method==='GET')return NextResponse.json((await readState()).executions.filter(e=>sameScope(e.scope,scope)&&e.evidence.every(item=>item.permission_scope.some(r=>r==='plant'||r===scope.role))).map(resultFor));
     if(parts[0]==='executions'&&parts[2]==='export'&&method==='GET') {
       const run=(await readState()).executions.find(e=>e.id===parts[1]&&sameScope(e.scope,scope)&&e.evidence.every(item=>item.permission_scope.some(r=>r==='plant'||r===scope.role)));

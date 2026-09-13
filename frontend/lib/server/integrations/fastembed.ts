@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
+import { persistentEmbed } from './fastembed-persistent';
 import { env,IntegrationError } from './config';
 import type { EmbeddingProvider } from './contracts';
 
@@ -13,6 +14,7 @@ export class FastEmbedProvider implements EmbeddingProvider {
   async embed(texts:string[],purpose:'passage'|'query'='passage'):Promise<number[][]> {
     validateFastEmbed();if(!texts.length)return [];
     if(texts.length>32||texts.some(t=>typeof t!=='string'||t.length>12000)||JSON.stringify(texts).length>120000)throw new IntegrationError('invalid_input','FastEmbed batch too large',413);
+    if(env('FASTEMBED_PERSISTENT')==='true')return persistentEmbed(texts,purpose);
     if(active)throw new IntegrationError('unavailable','Local embedding worker busy; retry later');
     active=true;
     try{return await new Promise<number[][]>((resolve,reject)=>{

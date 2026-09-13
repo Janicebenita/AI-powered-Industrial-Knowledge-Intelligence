@@ -4,8 +4,8 @@ import { env, required, IntegrationError, production } from './config';
 import type { Scope } from './contracts';
 const roles = ['plant_manager','reliability_engineer','maintenance_engineer','operator','safety_officer','quality_manager','compliance_auditor','executive'];
 type Account = Scope & { email: string; salt: string; password_hash: string; disabled?: boolean };
-async function accounts(): Promise<Account[]> {
-  try { const data=JSON.parse(await readFile(required('INTEGRATION_USERS_FILE'),'utf8')); if(!Array.isArray(data)) throw Error(); return data; }
+export async function accounts(): Promise<Account[]> {
+  try { const data=JSON.parse(env('INTEGRATION_USERS_JSON') || await readFile(required('INTEGRATION_USERS_FILE'),'utf8')); if(!Array.isArray(data)) throw Error(); return data; }
   catch { throw new IntegrationError('misconfigured','INTEGRATION_USERS_FILE must contain configured user accounts'); }
 }
 export function sign(payload: object) {

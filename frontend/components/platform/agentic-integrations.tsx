@@ -1,7 +1,7 @@
 "use client";
 import { useCallback,useEffect,useState } from 'react';
 type Health={status:string;detail:string;last_success:string|null;vector_count?:number;collection?:string;workflow?:string;agent?:string};
-type Report={modes:{voice:string;vector:string;agent:string;fallback:boolean};providers:Record<string,Health>;configuration:string|null};
+type Report={storage?:{durable:boolean;detail:string};modes:{voice:string;vector:string;agent:string;fallback:boolean};providers:Record<string,Health>;configuration:string|null};
 type RecordPreview={demonstration_data?:boolean;classification?:string;proposed_review_actions?:string[];id:string;conversation_id:string;transcript:string;asset_tag:string[];defect:string[];recommended_action:string[];status:string;indexing:string;timestamp:string|null;provider:string};
 type Run={answer_id:string;provider:string;direct_answer:string;execution:{status:string;steps:Array<{name:string;status:string;provider:string;started_at?:string;ended_at?:string}>}};
 async function call<T>(path:string,method='GET',body?:unknown):Promise<T> {
@@ -24,6 +24,7 @@ export function AgenticIntegrations({controls=false}:{controls?:boolean}) {
     <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-semibold">Agentic Integrations</h2><button className={button} onClick={()=>void action(refresh)} disabled={busy}>Check providers</button></div>
     {!report?<p role="status" className="mt-2 text-sm text-amber-200">Provider status unverified</p>:<>
       <p className="mt-2 break-words text-xs text-slate-300">Active modes: {report.modes.voice} / {report.modes.vector} / {report.modes.agent}. Demo fallback: {report.modes.fallback?'enabled':'disabled'}.</p>
+      {report.storage&&!report.storage.durable&&<p role="status" className="mt-2 text-sm text-amber-200">{report.storage.detail}</p>}
       <div className="mt-3 grid gap-2 md:grid-cols-3">{Object.entries(report.providers).map(([name,h])=><div key={name} className="min-w-0 rounded-lg bg-white/5 p-3 text-sm"><strong>{name.toUpperCase()}: {h.status==='healthy'?'Connected (runtime checked)':h.status}</strong><p className="mt-1 break-words text-xs text-slate-400">{h.detail}</p><p className="mt-1 text-xs">Last success: {h.last_success||'Never verified'}</p>{h.collection&&<p className="break-all">Collection: {h.collection}</p>}{h.vector_count!==undefined&&<p>Stored vectors: {h.vector_count}</p>}{h.workflow&&<p>Workflow: {h.workflow}</p>}{h.agent&&<p>Direct agent: {h.agent}</p>}</div>)}</div>
       {report.configuration&&<p className="mt-2 text-xs text-amber-200">{report.configuration}</p>}
     </>}

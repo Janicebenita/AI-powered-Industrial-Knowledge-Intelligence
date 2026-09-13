@@ -19,7 +19,8 @@ export function validateConfig() {
     if (!(allowed as readonly string[]).includes(value)) throw new IntegrationError('misconfigured', `Invalid ${name}`);
   }
   if (production()) {
-    for (const name of ['VOICE_PROVIDER','VECTOR_PROVIDER','AGENT_PROVIDER','ALLOW_DEMO_FALLBACK','JWT_SECRET','INTEGRATION_USERS_FILE','INTEGRATION_DATA_DIR']) required(name);
+    for (const name of ['VOICE_PROVIDER','VECTOR_PROVIDER','AGENT_PROVIDER','ALLOW_DEMO_FALLBACK','JWT_SECRET','INTEGRATION_DATA_DIR']) required(name);
+    if(!env('INTEGRATION_USERS_JSON'))required('INTEGRATION_USERS_FILE');
     if (required('JWT_SECRET').length < 32) throw new IntegrationError('misconfigured', 'JWT_SECRET must contain at least 32 characters');
   }
   if (m.voice === 'omi') { required('OMI_API_KEY'); baseUrl('OMI_API_BASE_URL','https://api.omi.me'); if(!omiAssignment().tenant||!omiAssignment().plant)throw new IntegrationError('misconfigured','OMI_ORGANIZATION_ID and OMI_PLANT_ID required'); }

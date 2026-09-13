@@ -20,12 +20,14 @@ export class QdrantProvider implements VectorStoreProvider {
     return {status:r.result.status==='green'?'healthy':'degraded',collection:this.collection,vector_count:r.result.points_count,detail:'Authenticated collection status and dimensions checked'};
   }); }
   async initialize() {
+    if(env('STAGING_READ_ONLY')==='true')throw new IntegrationError('forbidden','Qdrant writes disabled in disposable staging',403);
     const exists=await this.call<{result:{exists:boolean}}>('/exists');
     if(exists.result?.exists!==true) await this.call('', 'PUT',{vectors:{size:this.embedding.dimension,distance:'Cosine'}});
     const health=await this.health(); if(health.status!=='healthy') throw new IntegrationError('misconfigured',health.detail);
     for(const field of ['tenant','plant','organization_id','plant_id','permission_scope','document_id','asset_tag','content_hash']) await this.call('/index?wait=true','PUT',{field_name:field,field_schema:'keyword'});
   }
   async upsert(items:Evidence[]) {
+    if(env('STAGING_READ_ONLY')==='true')throw new IntegrationError('forbidden','Qdrant writes disabled in disposable staging',403);
     for(let i=0;i<items.length;i+=32) {
       const batch=items.slice(i,i+32); const vectors=await this.embedding.embed(batch.map(e=>e.text));
       if(vectors.length!==batch.length||vectors.some(v=>v.length!==this.embedding.dimension||v.some(n=>typeof n!=='number'||!Number.isFinite(n))))throw new IntegrationError('invalid_response','Vector dimensions or values invalid');
@@ -45,6 +47,7 @@ export class QdrantProvider implements VectorStoreProvider {
     });
   }
   async deleteDocument(id:string,scope:Scope) {
+    if(env('STAGING_READ_ONLY')==='true')throw new IntegrationError('forbidden','Qdrant writes disabled in disposable staging',403);
     const result=await this.call<{result:{status:string}}>('/points/delete?wait=true','POST',{filter:scopeFilter(scope,undefined,id)});
     if(result.result?.status!=='completed') throw new IntegrationError('unavailable','Qdrant deletion not confirmed');
   }

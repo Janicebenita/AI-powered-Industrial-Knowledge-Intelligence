@@ -8,7 +8,7 @@
     "start": "next start -H 0.0.0.0",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node scripts/test-evidence.cjs && node scripts/test-integrations.cjs && node scripts/test-validation.cjs && node scripts/test-judge-questions.cjs && node scripts/test-components.cjs && node scripts/test-fastembed.cjs",
+    "test": "node scripts/test-evidence.cjs && node scripts/test-integrations.cjs && node scripts/test-validation.cjs && node scripts/test-judge-questions.cjs && node scripts/test-components.cjs && node scripts/test-fastembed.cjs && node scripts/test-free-staging.cjs",
     "index:demo": "node scripts/index-demo-evidence.mjs"
   },
   "dependencies": {
