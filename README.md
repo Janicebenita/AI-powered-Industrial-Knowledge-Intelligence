@@ -159,6 +159,7 @@ flowchart TD
 
 ## 🛠 Technology Stack
 
+
 ### 🎨 Frontend
 
 <p>
@@ -167,65 +168,149 @@ flowchart TD
   <img src="https://img.shields.io/badge/Tailwind%20CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white"/>
 </p>
 
-- ⚡ **Next.js 15** – Modern React framework for scalable enterprise UI
-- 🔷 **TypeScript** – Type-safe frontend development
-- 🎨 **Tailwind CSS** – Responsive, premium, utility-first styling
+- ⚡ **Next.js 15** – Enterprise web interface for the Industrial Copilot, Asset 360, RCA and compliance workflows
+- 🔷 **TypeScript** – Type-safe application development
+- 🎨 **Tailwind CSS** – Responsive industrial command-centre interface
 
 ---
 
-### ⚙️ Backend
+### ⚙️ Backend and Security
 
 <p>
   <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white"/>
   <img src="https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge"/>
   <img src="https://img.shields.io/badge/Alembic-6B7280?style=for-the-badge"/>
   <img src="https://img.shields.io/badge/JWT%20Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white"/>
-  <img src="https://img.shields.io/badge/RBAC-Secure-green?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/RBAC-Human%20Governed-16A34A?style=for-the-badge"/>
 </p>
 
-- 🚀 **FastAPI** – High-performance Python API framework
-- 🗄️ **SQLAlchemy** – ORM for production database models
-- 🔁 **Alembic** – Database migration management
+- 🚀 **FastAPI** – API layer connecting the user interface, industrial data and agent workflows
+- 🗄️ **SQLAlchemy** – ORM for structured industrial and application data
+- 🔁 **Alembic** – Controlled database schema migrations
 - 🔐 **JWT Authentication** – Secure token-based authentication
-- 🛡️ **RBAC** – Role-based access control for enterprise users
+- 🛡️ **RBAC** – Role-based access to plant, asset, compliance and administrative functions
+- 👤 **Human Governance** – Authorized engineering review for high-impact AI recommendations
 
 ---
 
-### 🧠 AI Layer
+### 🎙️ Omi Voice and Operational Memory
 
 <p>
-  <img src="https://img.shields.io/badge/RAG-Retrieval%20Augmented%20Generation-blueviolet?style=for-the-badge"/>
-  <img src="https://img.shields.io/badge/Embeddings-Semantic%20Search-orange?style=for-the-badge"/>
-  <img src="https://img.shields.io/badge/Knowledge%20Graph-Industrial%20AI-red?style=for-the-badge"/>
-  <img src="https://img.shields.io/badge/OpenAI-Compatible-412991?style=for-the-badge&logo=openai&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Gemini-4285F4?style=for-the-badge&logo=googlegemini&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Local%20Mode-Deterministic-success?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Omi-Voice--First%20Memory-7C3AED?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Conversations-Operational%20Capture-9333EA?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Action%20Items-Structured%20Follow--up-A855F7?style=for-the-badge"/>
 </p>
 
-- 🔎 **RAG** – Retrieval-Augmented Generation for source-grounded answers
-- 🧬 **Embeddings** – Semantic document and asset search
-- 🕸️ **Knowledge Graph** – Relationship mapping across assets, failures, SOPs, and regulations
-- 🤖 **OpenAI-Compatible Models** – Support for OpenAI-style model APIs
-- ✨ **Gemini** – Optional Google Gemini model integration
-- 🧪 **Local Deterministic Mode** – Offline demo and judging-friendly AI behavior
+- 🎙️ **Omi** – Voice-first capture of maintenance observations, inspection findings, troubleshooting discussions and shift handovers
+- 📝 **Conversation Processing** – Converts engineering discussions into structured operational context
+- ✅ **Action-Item Capture** – Preserves follow-up activities identified during field conversations
+- 🧠 **Operational Continuity** – Makes captured knowledge available to future investigations and agent workflows
 
 ---
 
-### 🗄️ Data & Infrastructure
+### 🤖 Lyzr Agentic AI and Orchestration
+
+<p>
+  <img src="https://img.shields.io/badge/Lyzr-Multi--Agent%20Orchestration-6D28D9?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/RAG-Evidence%20Grounded-8B5CF6?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Knowledge%20Graph-Asset%20Relationships-DC2626?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Human--in--the--Loop-Governed-16A34A?style=for-the-badge"/>
+</p>
+
+- 🧩 **Lyzr** – Orchestrates evidence retrieval, asset intelligence, RCA, compliance and safety agents
+- 🔎 **Retrieval-Augmented Generation** – Produces answers grounded in retrieved industrial evidence
+- 🕸️ **Knowledge Graph** – Maps relationships among assets, failures, work orders, SOPs and risks
+- 📚 **Evidence Verification** – Connects important findings and recommendations to supporting source records
+- 👤 **Human-in-the-Loop Control** – Routes consequential recommendations for authorized engineering review
+
+---
+
+### 🔍 Qdrant Vector Retrieval and Knowledge Storage
+
+<p>
+  <img src="https://img.shields.io/badge/Qdrant-Vector%20Database-DC244C?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Embeddings-Semantic%20Retrieval-F97316?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Metadata-Asset%20Aware-2563EB?style=for-the-badge"/>
+</p>
+
+- 🧠 **Qdrant** – Vector database for industrial documents, operational records and Omi-derived knowledge
+- 🔎 **Semantic Retrieval** – Finds evidence by operational meaning instead of keyword matching alone
+- 🏷️ **Metadata Filtering** – Restricts retrieval by plant, asset tag, document type, date, risk and access role
+- 📄 **Source-Cited Evidence** – Returns relevant evidence chunks for grounded AI responses
+- 🔄 **Persistent Agent Memory** – Makes validated operational knowledge available to subsequent workflows
+
+---
+
+### 🗄️ Data and Infrastructure
 
 <p>
   <img src="https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white"/>
   <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white"/>
-  <img src="https://img.shields.io/badge/ChromaDB-5B21B6?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Qdrant-DC244C?style=for-the-badge"/>
   <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white"/>
   <img src="https://img.shields.io/badge/Docker%20Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white"/>
 </p>
 
-- 🐘 **PostgreSQL** – Relational database for assets, documents, users, permissions, and audit logs
-- ⚡ **Redis** – Caching, queues, and background workflow support
-- 🧠 **ChromaDB** – Vector database for embeddings and semantic retrieval
-- 🐳 **Docker** – Containerized deployment
-- 📦 **Docker Compose** – Multi-service local and demo environment
+- 🐘 **PostgreSQL** – Structured storage for assets, documents, users, permissions and audit records
+- ⚡ **Redis** – Caching, queues and temporary workflow state
+- 🧠 **Qdrant** – Persistent vector retrieval and evidence-memory layer
+- 🐳 **Docker** – Containerized application deployment
+- 📦 **Docker Compose** – Reproducible multi-service development and demonstration environment
+
+---
+
+## 🔗 Omi–Qdrant–Lyzr Integration
+
+```mermaid
+flowchart TD
+    A["Omi Voice Capture"] --> B["FastAPI Processing"]
+    C["Industrial Documents"] --> B
+
+    B --> D["Transcription, Chunking and Entity Extraction"]
+    D --> E["Qdrant Vector Knowledge Store"]
+    D --> F["Asset Knowledge Graph"]
+
+    E --> G["Lyzr Multi-Agent Orchestrator"]
+    F --> G
+
+    G --> H["Evidence Retrieval Agent"]
+    G --> I["Asset and RCA Agent"]
+    G --> J["Compliance and Safety Agent"]
+
+    H --> K["Evidence Verification"]
+    I --> K
+    J --> K
+
+    K --> L{"Human Review Required?"}
+    L -->|Yes| M["Authorized Engineer Approval"]
+    L -->|No| N["Approved AI Response"]
+    M --> N
+
+    N --> O["Industrial Copilot"]
+    N --> P["Asset 360 and RCA"]
+    N --> Q["Compliance Intelligence"]
+    N --> R["Executive Dashboard"]
+
+    O --> S["Audit Trail and Operational Memory"]
+    P --> S
+    Q --> S
+    R --> S
+
+    S --> E
+```
+
+### 🔄 Unified Agentic Execution Loop
+
+1. **Omi captures** frontline conversations, maintenance observations, inspections and shift handovers.
+2. **FastAPI processes** Omi conversations and uploaded industrial documents.
+3. **Qdrant stores and retrieves** evidence using embeddings and asset-aware metadata.
+4. **Lyzr orchestrates** specialist agents for evidence retrieval, asset analysis, RCA, compliance and safety.
+5. **Evidence verification** checks whether important findings are supported by retrieved source records.
+6. **Human review** governs high-impact engineering and safety recommendations.
+7. Approved results are delivered through the Industrial Copilot, Asset 360, RCA, Compliance Intelligence and Executive Dashboard.
+8. Validated outputs are retained in the audit trail and operational-memory layer.
+
+> **Core integration:** Omi captures operational knowledge, Qdrant preserves and retrieves evidence, and Lyzr orchestrates the agent workflow to produce governed, evidence-grounded industrial intelligence.
 
     
     
