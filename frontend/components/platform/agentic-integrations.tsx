@@ -1,4 +1,5 @@
 "use client";
+import { useSession, SessionControls, requestSignIn } from "@/components/session-provider";
 import { useCallback,useEffect,useState } from 'react';
 type Health={status:string;detail:string;last_success:string|null;vector_count?:number;collection?:string;workflow?:string;agent?:string};
 type Report={storage?:{durable:boolean;detail:string};modes:{voice:string;vector:string;agent:string;fallback:boolean};providers:Record<string,Health>;configuration:string|null};
@@ -6,13 +7,14 @@ type RecordPreview={demonstration_data?:boolean;classification?:string;proposed_
 type Run={answer_id:string;provider:string;direct_answer:string;execution:{status:string;steps:Array<{name:string;status:string;provider:string;started_at?:string;ended_at?:string}>}};
 async function call<T>(path:string,method='GET',body?:unknown):Promise<T> {
   const response=await fetch('/api/integrations/'+path,{method,headers:{'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
+  if(response.status===401){requestSignIn();throw new Error("Sign in required");}
   const data=await response.json();if(!response.ok)throw new Error(data.detail||'Request failed');return data;
 }
 const button='rounded-lg border border-cyan-300/30 px-3 py-2 text-sm text-cyan-100 hover:bg-cyan-400/10 disabled:opacity-50';
 const input='min-w-0 rounded-lg border border-white/20 bg-slate-950 p-2 text-white';
 export function AgenticIntegrations({controls=false}:{controls?:boolean}) {
   const [report,setReport]=useState<Report|null>(null);const [error,setError]=useState('');const [busy,setBusy]=useState(false);
-  const [email,setEmail]=useState('');const [password,setPassword]=useState('');const [signedIn,setSignedIn]=useState(false);
+  const {user}=useSession();const signedIn=!!user;
   const [lastSync,setLastSync]=useState<string|null>(null);const [choices,setChoices]=useState<Array<{id:string}>>([]);
   const [id,setId]=useState('');const [preview,setPreview]=useState<RecordPreview|null>(null);const [records,setRecords]=useState<RecordPreview[]>([]);const [runs,setRuns]=useState<Run[]>([]);
   const refresh=useCallback(async()=>{try{setReport(await call<Report>('health'));}catch{setReport(null);setError('Integration health unavailable');}},[]);
@@ -29,11 +31,7 @@ export function AgenticIntegrations({controls=false}:{controls?:boolean}) {
       {report.configuration&&<p className="mt-2 text-xs text-amber-200">{report.configuration}</p>}
     </>}
     {controls&&<div className="mt-4 grid gap-3">
-      <details><summary className="cursor-pointer text-sm">Integration sign in</summary><form className="mt-2 flex flex-wrap gap-2" onSubmit={e=>{e.preventDefault();void action(async()=>{await call('session','POST',{email,password});setPassword('');setSignedIn(true);await status();});}}>
-        <label className="grid gap-1 text-xs">Email<input className={input} autoComplete="username" type="email" value={email} onChange={e=>setEmail(e.target.value)} required/></label>
-        <label className="grid gap-1 text-xs">Password<input className={input} autoComplete="current-password" type="password" value={password} onChange={e=>setPassword(e.target.value)} required/></label>
-        <button className={button} disabled={busy}>Sign in</button><button className={button} type="button" onClick={()=>void action(async()=>{await call('session','DELETE');setSignedIn(false);setPreview(null);setRecords([]);setRuns([]);})}>Sign out</button>
-      </form>{signedIn&&<p className="text-xs text-cyan-200">Authenticated integration session</p>}</details>
+      <SessionControls />
       <form className="flex flex-wrap items-end gap-2" onSubmit={e=>{e.preventDefault();void action(async()=>setPreview(await call<RecordPreview>('omi/import','POST',{conversation_id:id})));}}>
         <label className="grid min-w-0 flex-1 gap-1 text-xs">Omi conversation ID<input className={input} value={id} onChange={e=>setId(e.target.value)} maxLength={200} required/></label>
         <button className={button} disabled={busy}>Import Omi Conversation</button><button className={button} type="button" disabled={busy} onClick={()=>void action(async()=>{const list=await call<{conversations:Array<{id:string}>}>('omi/conversations');setChoices(list.conversations);})}>Browse Omi conversations</button><button type="button" className={button} disabled={busy} onClick={()=>void action(status)}>Synchronization status</button>

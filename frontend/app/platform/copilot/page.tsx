@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession, requestSignIn } from "@/components/session-provider";
 import { AgenticIntegrations } from "@/components/platform/agentic-integrations";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -164,6 +165,7 @@ function InsufficientEvidencePanel({ answer, actions }: { answer: string; action
 
 export default function CopilotPage() {
   const searchParams = useSearchParams();
+  const {user,loading:sessionLoading}=useSession();
   const [question, setQuestion] = useState("Why has Pump P101 failed repeatedly?");
   const [asked, setAsked] = useState(false);
   const [response, setResponse] = useState<CopilotResponse | null>(null);
@@ -198,6 +200,8 @@ export default function CopilotPage() {
       return;
     }
 
+    if(sessionLoading)return;
+    if(!user){requestSignIn();return;}
     setQuestion(trimmed);
     setAsked(true);
     setIsAsking(true);
@@ -210,6 +214,7 @@ export default function CopilotPage() {
         body: JSON.stringify({ question: trimmed, user_role: "maintenance" })
       });
 
+      if(result.status===401){requestSignIn();return;}
       if (!result.ok) {
         const detail = await result.text();
         throw new Error(detail || `Copilot request failed with HTTP ${result.status}`);
@@ -224,7 +229,7 @@ export default function CopilotPage() {
     } finally {
       setIsAsking(false);
     }
-  }, [question]);
+  }, [question,user,sessionLoading]);
 
   useEffect(() => {
     const queryQuestion = searchParams.get("question");

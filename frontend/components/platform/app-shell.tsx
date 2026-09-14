@@ -1,5 +1,6 @@
 "use client";
 
+import { SessionControls } from "@/components/session-provider";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, ChevronDown, Menu, Shield, Sparkles } from "lucide-react";
@@ -95,10 +96,11 @@ function Topbar() {
         <button className="hidden items-center gap-2 rounded-xl border border-cyan-400/25 bg-cyan-400/10 px-3 py-2 text-sm font-semibold text-cyan-100 shadow-[0_0_22px_rgba(0,212,255,0.10)] sm:flex"><Shield size={15} /> Plant A</button>
         <button className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 text-sm transition hover:border-cyan-300/30">
           <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-xs font-bold">PM</span>
-          <span className="hidden md:inline">Demo persona</span>
+          <span className="hidden md:inline">Visual demo persona (no permissions)</span>
           <ChevronDown size={15} />
         </button>
       </div>
+      <SessionControls />
     </header>
   );
 }

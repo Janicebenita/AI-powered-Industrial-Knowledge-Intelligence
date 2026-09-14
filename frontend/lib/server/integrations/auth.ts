@@ -55,3 +55,8 @@ export async function bodyObject(request:Request) {
   try { const body=JSON.parse(raw); if(!body || typeof body!=='object' || Array.isArray(body)) throw Error(); return body as Record<string,unknown>; } catch { throw new IntegrationError('invalid_input','JSON object required',400); }
 }
 export function textField(value:unknown,name:string,max=2000) { if(typeof value!=='string' || !value.trim() || value.length>max) throw new IntegrationError('invalid_input',`${name} must be nonempty text, at most ${max} characters`,400); return value.trim(); }
+
+export function sessionCookie(token:string,request:Request):string {
+  const secure=production() || process.env.NODE_ENV==='production' || new URL(request.url).protocol==='https:';
+  return `industrial_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${token?'28800':'0'}${secure?'; Secure':''}`;
+}

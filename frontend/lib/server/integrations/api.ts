@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { identity,bodyObject,textField,sameOrigin,rateLimit,login } from './auth';
-import { IntegrationError,env,modes,production } from './config';
+import { identity,bodyObject,textField,sameOrigin,rateLimit,login,sessionCookie } from './auth';
+import { IntegrationError,env,modes } from './config';
 import { providers,healthReport } from './factory';
 import { normalizeConversation } from './omi';
 import { auditEvent,readState,sameScope,transaction } from './state';
@@ -15,9 +15,15 @@ export async function integrationApi(request:Request,parts:string[]) {
     if(route==='health' && method==='GET')return NextResponse.json(await healthReport());
     if(route==='session' && method==='POST') {
       rateLimit('login',10);const body=await bodyObject(request); const token=await login(textField(body.email,'email',200),textField(body.password,'password',200));
-      return NextResponse.json({status:'signed_in'},{headers:{'Set-Cookie':`industrial_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800${production()?'; Secure':''}`}});
+      const scope=await identity(new Request(request.url,{headers:{Authorization:'Bearer '+token}}));
+      await transaction(state=>auditEvent(state,scope,'session.login','session'));
+      return NextResponse.json({status:'signed_in'},{headers:{'Cache-Control':'no-store','Set-Cookie':sessionCookie(token,request)}});
     }
-    if(route==='session' && method==='DELETE')return NextResponse.json({status:'signed_out'},{headers:{'Set-Cookie':'industrial_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'}});
+    if(route==='session' && method==='DELETE') {
+      let scope;try{scope=await identity(request);}catch(error){if(!(error instanceof IntegrationError)||error.status!==401)throw error;}
+      if(scope)await transaction(state=>auditEvent(state,scope,'session.logout','session'));
+      return NextResponse.json({status:'signed_out'},{headers:{'Cache-Control':'no-store','Set-Cookie':sessionCookie('',request)}});
+    }
     if(parts[0]==='workflow' && ['retrieve','trace'].includes(parts[2]) && method==='POST') {
       const token=request.headers.get('authorization')?.replace(/^Bearer /,'')||'';const run=await workflowCapability(parts[1],token);rateLimit('workflow:'+run.id,30);
       if(parts[2]==='retrieve') {
@@ -33,7 +39,7 @@ export async function integrationApi(request:Request,parts:string[]) {
     }
     const scope=await identity(request,method==='GET'?'read':route.endsWith('/approve')||route.endsWith('/reject')||route.endsWith('/review')?'approve':route==='qdrant/initialize'?'admin':'write');
     rateLimit(scope.sub,30);
-    if(route==='session' && method==='GET')return NextResponse.json(scope);
+    if(route==='session' && method==='GET')return NextResponse.json(scope,{headers:{'Cache-Control':'no-store'}});
     if(route==='omi/conversations' && method==='GET') {requireOmiScope(scope);if(modes().voice!=='omi')throw new IntegrationError('disabled','Omi capture disabled');const offset=Number(new URL(request.url).searchParams.get('offset')||0);if(!Number.isInteger(offset)||offset<0||offset>10000)throw new IntegrationError('invalid_input','Invalid offset',400);return NextResponse.json({provider:'omi',conversations:await providers().conversation.list(offset)});}
     if(route==='omi/import' && method==='POST') {
       requireOmiScope(scope);if(modes().voice!=='omi')throw new IntegrationError('disabled','Omi capture disabled');const body=await bodyObject(request);const id=textField(body.conversation_id,'conversation_id',200);
