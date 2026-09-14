@@ -1,0 +1,75 @@
+{
+  "config": {
+    "OMI_API_KEY": "omi_dev_29f2c8b336f42982b8932074f45487d1",
+    "OMI_API_BASE_URL": "https://api.omi.me",
+    "OMI_SYNC_ENABLED": "true",
+    "OMI_ORGANIZATION_ID": "industrial-brain-ai",
+    "OMI_PLANT_ID": "plant-a",
+    "QDRANT_URL": "https://3c6610d9-2267-4aaa-a31f-ba76914b32a5.sa-east-1-0.aws.cloud.qdrant.io:6333",
+    "QDRANT_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIiwiZXhwIjoxNzk5NjkzODQzLCJzdWJqZWN0IjoiYXBpLWtleToyMzE1YmEwNS01N2ZhLTQ0OGUtOTFkYS03ZWQxMWQxMDQwMmQifQ.CQpwhtmsP_xzP9wDA3EOOaDg1iQIOK_i-s_rRg3CxWk",
+    "QDRANT_COLLECTION": "industrial_brain_evidence_v1",
+    "LYZR_API_KEY": "sk-default-zJflZtA0bcpynA8vU7idIXdRKEzTuiMg",
+    "LYZR_API_BASE_URL": "https://agent-prod.studio.lyzr.ai/",
+    "LYZR_API_MODE": "agent",
+    "LYZR_AGENT_ID": "6aa6e66eb76a71987d889c1a",
+    "LYZR_VERIFIER_AGENT_ID": "6aa700ba62d8857342d184c1",
+    "LYZR_WORKFLOW_ID": "",
+    "VOICE_PROVIDER": "omi",
+    "VECTOR_PROVIDER": "qdrant",
+    "AGENT_PROVIDER": "lyzr",
+    "ALLOW_DEMO_FALLBACK": "false",
+    "EMBEDDING_PROVIDER": "fastembed",
+    "EMBEDDING_MODEL": "BAAI/bge-small-en-v1.5",
+    "EMBEDDING_DIMENSION": "384",
+    "JWT_SECRET": "UAUZjU4ElMELakPfny9-lDhX8y_pu5vHgep2QJRepeSHnewLsN68v9lVEp3ElJbW",
+    "INTEGRATION_USERS_JSON": "[{\"sub\":\"1c5013c9-ee82-4b1f-9139-efc2f474c1e2\",\"email\":\"plant_manager@staging.invalid\",\"role\":\"plant_manager\",\"tenant\":\"industrial-brain-ai\",\"plant\":\"plant-a\",\"salt\":\"c34314f1ad98013cec68a561a0eb28a74246e175844432f1\",\"password_hash\":\"1e5cab463e309308b0f441fb03e8406856fa2d15c40946a26ac2b5422c9cef5220ee810692807ff9f7334d076317dc9185d00ec68e5c8f95c03deb04f29d670d\"},{\"sub\":\"fd211bc6-9a55-407b-a413-5d3d9480e7bd\",\"email\":\"operator@staging.invalid\",\"role\":\"operator\",\"tenant\":\"industrial-brain-ai\",\"plant\":\"plant-a\",\"salt\":\"0cfb5ff317b14d21592d5283e42509220260e66af9fe11cc\",\"password_hash\":\"3b5d80a492408f0a8fdce050142a78a2bca316f075e72413d73c8050b489f588f490fccfadc08cfc49f574063da5fe2390eca3620e8ba68101b7491a72a4eb7c\"},{\"sub\":\"demo-5ef9c27be865fef5069556d0\",\"email\":\"plant-a-demo-fca43f4fa143@example.test\",\"role\":\"operator\",\"tenant\":\"industrial-brain-ai\",\"plant\":\"plant-a\",\"salt\":\"3850c53faabe26aed9a68fbc4b8332a2eca88fe76a204915\",\"password_hash\":\"4d2e8b7fb8bb407641528b7fb504246c48966581e09fb4490dc51da835c8ba9c0fe599098f4e287d08691e50d2665f12fb6d48e104dc3becb05e5e25aac5582f\",\"disabled\":false,\"purpose\":\"hackathon browser demonstration\"}]",
+    "INTEGRATION_DATA_DIR": "/tmp/industrial-brain-state",
+    "COPILOT_UPLOAD_DIR": "/tmp/industrial-brain-uploads",
+    "QDRANT_MIGRATION_VERIFIED": "true",
+    "STAGING_DISPOSABLE": "true",
+    "STAGING_READ_ONLY": "true",
+    "FASTEMBED_PERSISTENT": "true",
+    "FASTEMBED_CACHE_PATH": "/tmp/industrial-brain-models",
+    "APP_BASE_URL": "https://industrial-brain-staging.onrender.com"
+  },
+  "users": [
+    {
+      "password": "4By7W7fAXZ6W5R2YFhse4_0LM9STDBVN",
+      "account": {
+        "sub": "1c5013c9-ee82-4b1f-9139-efc2f474c1e2",
+        "email": "plant_manager@staging.invalid",
+        "role": "plant_manager",
+        "tenant": "industrial-brain-ai",
+        "plant": "plant-a",
+        "salt": "c34314f1ad98013cec68a561a0eb28a74246e175844432f1",
+        "password_hash": "1e5cab463e309308b0f441fb03e8406856fa2d15c40946a26ac2b5422c9cef5220ee810692807ff9f7334d076317dc9185d00ec68e5c8f95c03deb04f29d670d"
+      }
+    },
+    {
+      "password": "NOm0KhPLVghOhOa8V0Ixi9pnIfur07f6",
+      "account": {
+        "sub": "fd211bc6-9a55-407b-a413-5d3d9480e7bd",
+        "email": "operator@staging.invalid",
+        "role": "operator",
+        "tenant": "industrial-brain-ai",
+        "plant": "plant-a",
+        "salt": "0cfb5ff317b14d21592d5283e42509220260e66af9fe11cc",
+        "password_hash": "3b5d80a492408f0a8fdce050142a78a2bca316f075e72413d73c8050b489f588f490fccfadc08cfc49f574063da5fe2390eca3620e8ba68101b7491a72a4eb7c"
+      }
+    },
+    {
+      "password": "TTfXzO-V9On6hsSqw4_VyTyB8sjSILKAQMiuIrcknA0",
+      "account": {
+        "sub": "demo-5ef9c27be865fef5069556d0",
+        "email": "plant-a-demo-fca43f4fa143@example.test",
+        "role": "operator",
+        "tenant": "industrial-brain-ai",
+        "plant": "plant-a",
+        "salt": "3850c53faabe26aed9a68fbc4b8332a2eca88fe76a204915",
+        "password_hash": "4d2e8b7fb8bb407641528b7fb504246c48966581e09fb4490dc51da835c8ba9c0fe599098f4e287d08691e50d2665f12fb6d48e104dc3becb05e5e25aac5582f",
+        "disabled": false,
+        "purpose": "hackathon browser demonstration"
+      }
+    }
+  ]
+}
