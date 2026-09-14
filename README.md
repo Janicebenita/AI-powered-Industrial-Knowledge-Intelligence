@@ -769,7 +769,7 @@ Industrial Brain AI can support:
 **Track:** Open Innovation  
 **Repository:** [GitHub](https://github.com/Janicebenita/AI-powered-Industrial-Knowledge-Intelligence)  
 **Live application:** [Render](https://intelligence-brain.onrender.com/)  
-**Demo video:** [YouTube]([https://youtu.be/X0sTBuB7ifA](https://youtu.be/08Qul_nH7-s))
+**Demo video:** [YouTube](https://youtu.be/08Qul_nH7-s)
 
 ### Omi
 
