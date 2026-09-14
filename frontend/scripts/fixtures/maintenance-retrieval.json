@@ -1,0 +1,86 @@
+[
+  {
+    "id": "fixture-id-0",
+    "document_id": "fixture-document_id-0",
+    "text": "Unrelated SOP fixture.",
+    "tenant": "fixture-org",
+    "plant": "fixture-plant",
+    "organization_id": "fixture-org",
+    "plant_id": "fixture-plant",
+    "permission_scope": [
+      "plant"
+    ],
+    "filename": "SOP_22_Pump_Isolation.txt",
+    "doc_type": "SOP",
+    "section": "Characters 1\u2013662",
+    "page_number": null,
+    "timestamp": null,
+    "asset_tag": [
+      "P101"
+    ],
+    "content_hash": "6d5a6dbbf75ad333619ad48b882801d2b3aa7f99af105811f1af519446a168b6",
+    "ingestion_version": "v2",
+    "document_type": "SOP",
+    "source_filename": "SOP_22_Pump_Isolation.txt",
+    "source_id": "fixture-source_id-0",
+    "evidence_class": "demo_corpus_reference",
+    "is_demonstration": true,
+    "demonstration_data": true,
+    "classification": "demo_corpus_reference",
+    "operational_authorization": false,
+    "provenance": {
+      "source_provider": "fixture-source_provider",
+      "source_filename": "fixture-source_filename",
+      "source_sha256": "fixture-source_sha256",
+      "start_character": 0,
+      "end_character": 662,
+      "page_numbers": [],
+      "extraction": "fixture-extraction"
+    },
+    "migration_set": "approved-352-v1",
+    "score": 0.7496738
+  },
+  {
+    "id": "fixture-id-1",
+    "document_id": "fixture-document_id-1",
+    "text": "work_order,asset_tag,date,role,maintenance_action,failure_mode,parts_used,status,notes\r\nWO-10877,P101,2026-02-19,Reliability Engineer,\"Cleaned suction strainer; replaced mechanical seal; verified pump alignment\",\"seal failure; vibration anomaly; cavitation\",\"mechanical seal; gasket set\",RCA Requested,\"Repeated seal failure after high vibration alarm. Check suction pressure and seal flush.\"\r\nWO-10421,P101,2025-08-14,Maintenance Technician,\"Replaced mechanical seal; lubricated bearing; aligned coupling\",\"seal failure; bearing overheating\",\"mechanical seal; bearing kit\",Closed,\"Possible shaft misalignment after outage.\"\r\nWO-7712,C201,2026-01-27,Compressor Specialist,\"Replaced oil filter; inspected bearing; calibrated pressure switch\",\"bearing overheating; oil contamination\",\"filter element; bearing kit\",Closed,\"TRIP-OIL-LOW caused compressor shutdown.\"\r\nWO-6631,HX401,2026-03-12,Inspection E",
+    "tenant": "fixture-org",
+    "plant": "fixture-plant",
+    "organization_id": "fixture-org",
+    "plant_id": "fixture-plant",
+    "permission_scope": [
+      "plant"
+    ],
+    "filename": "maintenance_work_orders.csv",
+    "doc_type": "Maintenance",
+    "section": "Characters 1\u2013900",
+    "page_number": null,
+    "timestamp": null,
+    "asset_tag": [
+      "P101",
+      "C201",
+      "HX401"
+    ],
+    "content_hash": "fe1a4251f80a678eb837ff2c47a0e97359b81851f0fea72466d88c1836a6eea9",
+    "ingestion_version": "v2",
+    "document_type": "Maintenance",
+    "source_filename": "maintenance_work_orders.csv",
+    "source_id": "fixture-source_id-1",
+    "evidence_class": "demo_corpus_reference",
+    "is_demonstration": true,
+    "demonstration_data": true,
+    "classification": "demo_corpus_reference",
+    "operational_authorization": false,
+    "provenance": {
+      "source_provider": "fixture-source_provider",
+      "source_filename": "fixture-source_filename",
+      "source_sha256": "fixture-source_sha256",
+      "start_character": 0,
+      "end_character": 900,
+      "page_numbers": [],
+      "extraction": "fixture-extraction"
+    },
+    "migration_set": "approved-352-v1",
+    "score": 0.6734061
+  }
+]
