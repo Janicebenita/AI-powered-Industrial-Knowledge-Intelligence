@@ -1,3 +1,4 @@
+import { isMaintenanceHistory } from '@/lib/server/integrations/maintenance-history';
 import { hash } from '@/lib/server/integrations/state';
 import { modes, IntegrationError } from '@/lib/server/integrations/config';
 import { identity, sameOrigin, rateLimit } from '@/lib/server/integrations/auth';
@@ -336,7 +337,7 @@ export async function POST(request: Request) {
     if (modes().agent === 'lyzr' || modes().vector === 'qdrant') {
       sameOrigin(request);
       const scope = await identity(request); rateLimit(scope.sub + ':copilot', 10);
-      if (modes().agent !== 'lyzr') throw new IntegrationError('misconfigured', 'Qdrant Copilot requires the configured Lyzr workflow');
+      if (modes().agent !== 'lyzr' && !isMaintenanceHistory(question)) throw new IntegrationError('misconfigured', 'Qdrant Copilot requires the configured Lyzr workflow');
       return NextResponse.json(await startWorkflow(question, scope));
     }
     const documents = [...(await readDemoDocuments()), ...(await readUploadedDocuments())];
