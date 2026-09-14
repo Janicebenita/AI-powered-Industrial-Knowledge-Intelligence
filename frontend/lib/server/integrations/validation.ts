@@ -7,12 +7,8 @@ export type Verdict = { claim_id:string; verdict:'supported'|'partially_supporte
 export type VerifierResponse = { overall_status:'verified'|'partially_verified'|'unverified'; claim_verdicts:Verdict[]; supported_claim_count:number; partially_supported_claim_count:number; unsupported_claim_count:number; requires_human_review:boolean };
 export type AssignedClaim = {index:number;claim_id:string;claim:Claim};
 export type ExcerptCheck = {original:string;normalized:string;matches:string[];passed:boolean};
-export type Decision = {index:number;claim_id:string;original_claim:Claim;released_claim?:Claim;outcome:'full'|'narrowed'|'rejected';reason:string;verifier_verdict?:string;verifier_reason?:string;verifier_claim?:string;excerpts:ExcerptCheck[];propositions?:ReturnType<typeof mechanismCheck>};
+export type Decision = {index:number;claim_id:string;original_claim:Claim;released_claim?:Claim;outcome:'full'|'narrowed'|'rejected';reason:string;verifier_verdict?:string;verifier_reason?:string;verifier_claim?:string;citation_resolution?:{method:string;returned_ids:string[];resolved_ids:string[]};excerpts:ExcerptCheck[];propositions?:ReturnType<typeof mechanismCheck>};
 export const normalizePassage = (text:string) => text.normalize('NFC').trim().replace(/\s+/gu,' ');
-// Claim formatting only: tolerate separators after word labels/list items.
-// Numeric punctuation, quotation, signs, units and all words stay unchanged.
-// Source-excerpt matching never uses this transformation.
-const supportedFormatting=(text:string)=>normalizePassage(text).replace(/(?<=\p{L})[:;,](?=\s)/gu,'');
 export function normalizeExcerpt(text:string) {
   const normalized=normalizePassage(text);
   const pairs:Record<string,string>={'"':'"',"'":"'",'“':'”','‘':'’'};
@@ -49,7 +45,7 @@ const numbers=(text:string):string[]=>text.match(/[+-]?\d+(?:\.\d+)?/g)||[];
 const references=(text:string):string[]=>text.match(/\b(?:ISO|OISD|NFPA|SOP|WO|INSP)[- ]?[\w.-]*\d[\w.-]*/gi)||[];
 export function safetyReason(claim:Claim,evidence:Evidence[]):string|null {
   if(!claim||!['fact','inference'].includes(claim.kind)||typeof claim.text!=='string'||!claim.text.trim()||claim.text.length>2000||!Array.isArray(claim.citations)||claim.citations.some(id=>typeof id!=='string'))return 'malformed claim';
-  if(!claim.citations.length||new Set(claim.citations).size!==claim.citations.length||claim.citations.some(id=>!evidence.some(e=>e.id===id)))return 'invalid citation ID';
+  if(!claim.citations.length||new Set(claim.citations).size!==claim.citations.length||claim.citations.some(id=>!evidence.some(e=>e.id===id)))return 'invalid_citation_id';
   const sources=evidence.filter(e=>claim.citations.includes(e.id));const source=sources.map(e=>e.text).join(' ');
   if(numbers(claim.text).some(n=>!numbers(source).includes(n)))return 'novel numeric claim';
   if(references(claim.text).some(r=>!source.toLowerCase().includes(r.toLowerCase())))return 'novel standard/reference';
@@ -84,7 +80,7 @@ export function parseVerifierResponse(raw:unknown,submitted:AssignedClaim[]):Ver
     const original=submitted.find(c=>c.claim_id===entry.claim_id);
     if(!original)throw Error('unknown verifier claim ID');
     if(seen.has(entry.claim_id))throw Error('duplicate verifier claim ID');seen.add(entry.claim_id);
-    if(new Set(entry.citation_ids).size!==entry.citation_ids.length||entry.citation_ids.some(id=>!original.claim.citations.includes(id)))throw Error('invalid verifier citation ID');
+    if(new Set(entry.citation_ids).size!==entry.citation_ids.length)throw Error('invalid verifier citation ID');
   }
   if(seen.size!==submitted.length)throw Error('missing verifier claim ID');
   const counts=['supported','partially_supported','unsupported'].map(status=>v.claim_verdicts.filter(e=>e.verdict===status).length);
@@ -129,14 +125,18 @@ export function validateVerdicts(submitted:AssignedClaim[],raw:unknown,evidence:
   try {response=parseVerifierResponse(raw,submitted);}catch(e){const reason='verifier contract: '+(e instanceof Error?e.message:'invalid response');return {entries:raw&&typeof raw==='object'&&Array.isArray((raw as VerifierResponse).claim_verdicts)?(raw as VerifierResponse).claim_verdicts.length:0,contract_error:reason,decisions:submitted.map(c=>{const entry=raw&&typeof raw==='object'&&Array.isArray((raw as VerifierResponse).claim_verdicts)?(raw as VerifierResponse).claim_verdicts.find(v=>v?.claim_id===c.claim_id):undefined;return {...c,original_claim:c.claim,outcome:'rejected',reason,excerpts:Array.isArray(entry?.supporting_excerpts)?entry.supporting_excerpts.filter((q):q is string=>typeof q==='string').map(q=>checkExcerpt(q,evidence.filter(e=>c.claim.citations.includes(e.id)))):[]};})};}
   const decisions=submitted.map(item=>{
     const v=response.claim_verdicts.find(v=>v.claim_id===item.claim_id)!;
-    const cited=evidence.filter(e=>v.citation_ids.includes(e.id));
+    const supplied=evidence.filter(e=>item.claim.citations.includes(e.id));
+    const invalid=v.citation_ids.some(id=>!supplied.some(e=>e.id===id));
+    const mapping=v.supporting_excerpts.map(q=>checkExcerpt(q,supplied));
+    // Recover only from unique exact excerpt matches within this claim's supplied
+    // evidence. Never edit an identifier or use unrelated retrieved passages.
+    const recovered=invalid&&mapping.length>0&&mapping.every(q=>q.matches.length===1)
+      ? [...new Set(mapping.flatMap(q=>q.matches))] : undefined;
+    const citationIds=invalid?(recovered||[]):v.citation_ids;
+    const cited=supplied.filter(e=>citationIds.includes(e.id));
     const excerpts=v.supporting_excerpts.map(q=>checkExcerpt(q,cited));
-    const candidate:Claim={kind:item.claim.kind,text:v.validated_claim,citations:v.citation_ids};
-    let reason=v.verdict==='unsupported'?'verifier unsupported':v.is_hypothesis!==(candidate.kind==='inference')?'claim classification changed':!v.citation_ids.length?'invalid citation ID':null;
-    if(!reason&&v.verdict==='supported'){
-      if(supportedFormatting(candidate.text)!==supportedFormatting(item.claim.text))reason='supported claim text changed';
-      else candidate.text=item.claim.text;
-    }
+    const candidate:Claim={kind:item.claim.kind,text:v.verdict==='supported'?item.claim.text:v.validated_claim,citations:citationIds};
+    let reason=v.verdict==='unsupported'?'verifier unsupported':v.is_hypothesis!==(candidate.kind==='inference')?'claim classification changed':!citationIds.length?'invalid_citation_id':null;
     if(!reason&&v.verdict==='partially_supported') {
       reason=narrowerReason(item.claim.text,candidate.text);
       if(!reason&&normalizePassage(candidate.text)===normalizePassage(item.claim.text)&&!cited.some(e=>normalizePassage(e.text).includes(normalizePassage(candidate.text))))reason='partial verdict did not narrow unsupported text';
@@ -146,7 +146,7 @@ export function validateVerdicts(submitted:AssignedClaim[],raw:unknown,evidence:
     if(!reason&&(!excerpts.length||excerpts.some(q=>!q.passed)))reason='supporting excerpt mismatch or trivial excerpt';
     const matched=new Set(excerpts.flatMap(q=>q.matches));
     if(!reason&&candidate.citations.some(id=>!matched.has(id)))reason='citation lacks a matching supporting excerpt';
-    return {index:item.index,claim_id:item.claim_id,original_claim:item.claim,...(!reason?{released_claim:candidate}:{}),outcome:reason?'rejected':v.verdict==='partially_supported'?'narrowed':'full',reason:reason||'validated',verifier_verdict:v.verdict,verifier_reason:v.reason,verifier_claim:v.validated_claim,excerpts,propositions:mechanismCheck(candidate,cited)} as Decision;
+    return {index:item.index,claim_id:item.claim_id,original_claim:item.claim,...(!reason?{released_claim:candidate}:{}),outcome:reason?'rejected':v.verdict==='partially_supported'?'narrowed':'full',reason:reason||'validated',verifier_verdict:v.verdict,verifier_reason:v.reason,verifier_claim:v.validated_claim,...(invalid?{citation_resolution:{method:recovered?'unique exact supplied excerpt':'unresolved',returned_ids:v.citation_ids,resolved_ids:citationIds}}:{}),excerpts,propositions:mechanismCheck(candidate,cited)} as Decision;
   });
   return {decisions,entries:response.claim_verdicts.length,contract_inconsistencies:response.inconsistencies};
 }
