@@ -36,7 +36,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   return (
-    <div className="plant-os-bg relative min-h-screen">
+    <div className="platform-shell plant-os-bg relative min-h-screen">
       <div className="pointer-events-none fixed inset-0 opacity-80">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(0,123,255,0.16),transparent_42%)]" />
       </div>
@@ -73,7 +73,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </aside>
         <div className="min-w-0 pb-24 lg:pb-0">
           <Topbar />
-          <main className="mx-auto max-w-[1580px] px-4 py-5 md:px-6 lg:px-8"><div className="mb-4 rounded-xl border border-amber-300/20 bg-amber-400/5 p-3 text-xs text-amber-100">Demo data: dashboard, asset, graph, RCA, compliance and report examples are illustrative. Provider status and integration results are checked separately. AI output requires authorized engineering judgment.</div>{children}</main>
+          <main className="min-w-0 mx-auto max-w-[1580px] px-4 py-5 md:px-6 lg:px-8"><div className="mb-4 rounded-xl border border-amber-300/20 bg-amber-400/5 p-3 text-xs text-amber-100">Demo data: dashboard, asset, graph, RCA, compliance and report examples are illustrative. Provider status and integration results are checked separately. AI output requires authorized engineering judgment.</div>{children}</main>
           <MobileNav pathname={pathname} />
         </div>
       </div>
@@ -112,7 +112,7 @@ function MobileNav({ pathname }: { pathname: string }) {
           return (
             <Link key={href} href={href} prefetch aria-current={active ? "page" : undefined} className={cn("grid min-h-14 place-items-center rounded-xl px-1 text-center text-[11px] transition", active ? "bg-blue-500 text-white" : "text-slate-400 hover:bg-white/[0.07] hover:text-white")}>
               <Icon size={18} />
-              <span className="mt-1 max-w-full truncate">{label.replace("Command ", "").replace("Entity ", "")}</span>
+              <span className="mt-1 max-w-full break-words text-center">{label.replace("Command ", "").replace("Entity ", "")}</span>
             </Link>
           );
         })}

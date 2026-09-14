@@ -304,12 +304,12 @@ export default function IngestionPage() {
         <div className="grid gap-3 lg:grid-cols-2">
           {documents.map((doc) => (
             <div key={doc.name} className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
                 <div><h3 className="font-semibold">{doc.name}</h3><p className="text-sm text-slate-400">{doc.type}</p></div>
                 <ConfidenceBadge value={doc.confidence} />
               </div>
               <div className="mt-4 h-2 rounded-full bg-white/10"><div className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400" style={{ width: `${doc.progress}%` }} /></div>
-              <div className="mt-3 flex items-center justify-between text-sm"><SeverityBadge value={doc.progress === 100 ? "Approved" : "Needs Review"} /><button className="inline-flex items-center gap-1 text-slate-300"><RotateCcw size={14} /> {doc.progress === 100 ? "Reprocess" : "Retry"}</button></div>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm"><SeverityBadge value={doc.progress === 100 ? "Approved" : "Needs Review"} /><button className="inline-flex items-center gap-1 text-slate-300"><RotateCcw size={14} /> {doc.progress === 100 ? "Reprocess" : "Retry"}</button></div>
             </div>
           ))}
         </div>

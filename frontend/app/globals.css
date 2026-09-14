@@ -239,3 +239,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .thin-scrollbar::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.35); border-radius: 999px; }
 
 .react-flow__node { border-radius: 12px; }
+
+/* Grid/flex min-content sizing must not widen cards beyond their container. */
+.platform-shell .grid > *, .platform-shell .flex > *, .platform-shell .inline-flex > * { min-width: 0; }
+.platform-shell main { min-width: 0; }
+.platform-shell main :where(h1,h2,h3,h4,p,strong,a,button,label,summary) { overflow-wrap: anywhere; }
+.platform-shell main :where(input,select,textarea) { max-width: 100%; }
+.platform-shell main pre { max-width: 100%; overflow-x: auto; }
+.platform-shell.plant-os-bg { overflow: visible; }
+.platform-shell.plant-os-bg::before, .platform-shell.plant-os-bg::after { inset: 0; animation: none; }
+.platform-shell .recharts-responsive-container { min-width: 0 !important; }

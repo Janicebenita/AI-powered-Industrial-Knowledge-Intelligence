@@ -37,8 +37,8 @@ export default function DashboardPage() {
       <section className="command-panel plant-os-bg relative overflow-hidden rounded-[2rem] p-6 md:p-8">
         <div className="absolute right-10 top-10 h-56 w-56 rounded-full bg-cyan-400/10 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-px w-2/3 bg-gradient-to-r from-transparent via-cyan-300/50 to-blue-400/0" />
-        <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px_360px] xl:items-center">
-          <div>
+        <div className="relative grid gap-8 xl:grid-cols-2 2xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)] xl:items-center">
+          <div className="min-w-0 xl:col-span-2 2xl:col-span-1">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-100">
               <Sparkles size={14} /> Industrial Brain AI
             </div>
@@ -51,7 +51,7 @@ export default function DashboardPage() {
           </div>
           <div className="floating grid gap-3 rounded-[1.75rem] border border-white/10 bg-[#081320]/62 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
             <div className="flex items-center justify-between gap-3"><StatusBadge value="Demo: nominal" /><span className="text-sm text-cyan-200">Demo evidence view</span></div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3">
               {plantStatus.map(([label, value, tone]) => (
                 <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.055] p-3">
                   <p className="text-xs text-slate-400">{label}</p>
@@ -147,10 +147,10 @@ export default function DashboardPage() {
         <div className="pt-0 xl:pt-10">
           <GlassCard>
             <h2 className="mb-4 text-base font-semibold">Knowledge Coverage Heatmap</h2>
-            <div className="grid gap-2 overflow-x-auto pb-1">
+            <div className="grid gap-2 pb-1">
               {coverageHeatmap.map(([area, docs, inspections, sop, compliance]) => (
-                <div key={String(area)} className="grid min-w-[560px] grid-cols-[150px_repeat(4,minmax(0,1fr))] items-center gap-2 text-sm">
-                  <span className="text-slate-300">{area}</span>
+                <div key={String(area)} className="grid grid-cols-4 sm:grid-cols-[150px_repeat(4,minmax(0,1fr))] items-center gap-2 text-sm">
+                  <span className="col-span-4 sm:col-span-1 text-slate-300">{area}</span>
                   {[docs, inspections, sop, compliance].map((value, index) => <span key={index} className="rounded-lg border border-white/10 py-2 text-center font-semibold" style={{ background: `rgba(6,182,212,${Number(value) / 190})` }}>{value}%</span>)}
                 </div>
               ))}

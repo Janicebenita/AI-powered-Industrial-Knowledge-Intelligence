@@ -28,5 +28,5 @@ export function RiskBadge({ value }: { value: number }) {
 
 export function ConfidenceBadge({ value }: { value: number }) {
   const tone = value >= 90 ? "text-emerald-100 bg-emerald-400/12 border-emerald-400/35" : value >= 80 ? "text-cyan-100 bg-cyan-400/12 border-cyan-400/35" : "text-amber-100 bg-amber-400/12 border-amber-400/35";
-  return <span className={cn("inline-flex rounded-full border px-2.5 py-1 text-xs font-bold", tone)}>{value}% confidence</span>;
+  return <span className={cn("inline-flex shrink-0 rounded-full border px-2.5 py-1 text-xs font-bold", tone)}>{value}% confidence</span>;
 }
