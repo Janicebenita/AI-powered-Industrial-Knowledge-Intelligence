@@ -3,9 +3,20 @@ import type {Claim,Evidence} from './contracts';
 // Grammar, modality and relationship words do not describe physical mechanisms.
 // Everything else must be grounded in the cited passages. This deliberately
 // prefers rejection to guessing whether an unfamiliar technical term is a synonym.
-const stem=(word:string)=>word.toLowerCase().replace(/(?:ies|ied)$/,'y').replace(/(?:ing|ed|s)$/,'').replace(/(.)\1$/,'$1');
+export function conceptRoot(word:string){
+ let root=word.toLowerCase();
+ // Preserve short units and identifiers. Normalize common action noun/verb
+ // derivations, not synonyms or similarity scores.
+ if(root.length<4||/\d/.test(root))return root;
+ root=root.replace(/ification$/,'ify').replace(/ation$/,'ate').replace(/ment$/,'').replace(/ion$/,'').replace(/(?:ies|ied)$/,'y');
+ const inflected=/(?:ing|ed)$/.test(root);
+ root=root.replace(/(?:ing|ed|s)$/,'');
+ if(inflected)root=root.replace(/([b-df-hj-np-tv-z])\1$/,'$1');
+ return root.length>3?root.replace(/e$/,''):root;
+}
+const stem=conceptRoot;
 const grammar=new Set(('a an the and or but of in on at to for from with as that which it its is are was were be been being has have had this these those by also source sources record records history states says shows noted notes including includes include '+
-'may might could can would should suggest suggests suggests suggesting indicate indicates indicating contribute contributes contributing contributor contributors consequence risk risks relationship association associated consistent possible possibly plausible potentially potential given because due during after before over across between within without both either neither such related relevant available supplied evidence established establish confirmed confirm documented prove proven not no never cannot unknown unclear uncertain uncertainty requires require needs need investigation investigate investigate inspection inspect underlying further whether determining determine assess assessment evaluated evaluate review review recommended recommendation recommendations recommended chronological dated date dates event events entry entries prior previous later earlier latest first second subsequent listed recorded reported described found observed attention focused focus recurring recur recurrent repeatedly repeated recurrence routine condition conditions mechanism mechanisms defect defects side factor factors pattern patterns present presence existing operational work order orders task tasks action actions completed complete performed noted report cite citation warn against').split(/\s+/).map(stem));
+'may might could can would should suggest suggests suggests suggesting indicate indicates indicating contribute contributes contributing contributor contributors consequence cause causes causing caused risk risks relationship association associated consistent possible possibly plausible potentially potential given because due during after before over across between within without both either neither such related relevant available supplied provide provided evidence established establish confirmed confirm documented prove proven not no never cannot unknown unclear uncertain uncertainty requires require needs need investigation investigate investigate inspection inspect underlying further whether determining determine assess assessment evaluated evaluate review review recommended recommendation recommendations recommended chronological dated date dates event events entry entries prior previous later earlier latest first second subsequent listed recorded reported described found observed attention focused focus recurring recur recurrent repeatedly repeated recurrence routine condition conditions mechanism mechanisms defect defects side factor factors pattern patterns present presence existing operational work order orders task tasks action actions completed complete performed noted report cite citation warn against about into onto upon through throughout toward towards among').split(/\s+/).map(stem));
 const terms=(text:string)=>(text.normalize('NFC').toLowerCase().match(/[\p{L}\p{N}]+/gu)||[]).map(stem).filter(t=>!grammar.has(t));
 
 export function atomicPropositions(text:string):string[]{

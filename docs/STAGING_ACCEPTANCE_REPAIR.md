@@ -16,7 +16,9 @@ Contract version: `industrial-evidence-verification/v2-reconciled`.
 
 The canonical fields remain `overall_status`, `claim_verdicts`, the three verdict counts and `requires_human_review`. Valid item-level verdicts determine locally recomputed counts and overall status. Disagreements are recorded as sanitized contract inconsistencies. Invalid schema or missing, duplicate or unknown claim IDs still fail closed. Each otherwise valid verdict must independently pass evidence validation.
 
-Maintenance-history output orders dated retained claims chronologically. A causal conclusion is not required to return supported maintenance facts. Confidence remains unknown and human review remains mandatory.
+For a supported verdict, formatting-only removal of a colon, comma or semicolon after a word and before whitespace does not discard an otherwise identical claim. The original claim text is retained. Numbers, numeric punctuation, quotation, signs, units, word order and wording are not normalized away. This comparison is separate from exact source-excerpt validation, which is unchanged. The verifier-returned claim is retained only in the private audit.
+
+Maintenance-history output orders retained claims chronologically. When wording omits a date, the application may attach source-date context from a complete cited CSV row whose `work_order` identifier occurs exactly in that claim. This does not rewrite the verified claim. Uncited rows, invalid dates, truncated records and conflicting dates do not supply context. A causal conclusion is not required to return supported maintenance facts. Confidence remains unknown and human review remains mandatory.
 
 ## Responsive verification
 
@@ -24,6 +26,6 @@ The shell no longer conceals horizontal overflow. Grid/flex children may shrink,
 
 Test all 13 routes at 320×568, 360×800, 390×844, 412×915, 768×1024 and 1366×900. Record the actual browser inner width as well as document client/scroll widths. Inspect text and element bounds to detect clipping that a document-width assertion misses. Screen-reader-only labels and verified table-local scrolling are intentional exceptions, not hidden meaningful content.
 
-Run `npm test`, `npm run lint`, `npm run typecheck`, and `npm run build` in `frontend`. Validate real browser measurements with `node scripts/assert-layout-report.cjs <private-browser-report.json>`. The report contains 78 records with `route`, `viewport`, `innerWidth`, `width`, `scroll` and `offenders` fields.
+Run `npm test`, `npm run lint`, `npm run typecheck`, and `npm run build` in `frontend`. Pass the exported function from `scripts/measure-layout.cjs` to the browser DOM evaluation API after each route has rendered, adding the route and requested viewport to each result. Validate those real measurements with `node scripts/assert-layout-report.cjs <private-browser-report.json>`. The report contains 78 records with `route`, `viewport`, `innerWidth`, `width`, `scroll` and `offenders` fields. Measurement reports exclude rendered text to avoid copying private identifiers.
 
 Live acceptance additionally requires both P101 questions, authenticated provider health, readiness, citation/scope checks and an unchanged Qdrant count of 354. Mocked regression tests alone do not establish live acceptance. No migration or provider configuration changes are part of this repair. Staging remains disposable Free compute with no durable filesystem storage, no disk and automatic deployments disabled.

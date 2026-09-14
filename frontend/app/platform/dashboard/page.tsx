@@ -37,12 +37,12 @@ export default function DashboardPage() {
       <section className="command-panel plant-os-bg relative overflow-hidden rounded-[2rem] p-6 md:p-8">
         <div className="absolute right-10 top-10 h-56 w-56 rounded-full bg-cyan-400/10 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-px w-2/3 bg-gradient-to-r from-transparent via-cyan-300/50 to-blue-400/0" />
-        <div className="relative grid gap-8 xl:grid-cols-2 2xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)] xl:items-center">
-          <div className="min-w-0 xl:col-span-2 2xl:col-span-1">
+        <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)] xl:items-center">
+          <div className="min-w-0">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-100">
               <Sparkles size={14} /> Industrial Brain AI
             </div>
-            <h1 className="max-w-4xl text-4xl font-black tracking-normal md:text-6xl">Transform Industrial Knowledge Into Operational Intelligence</h1>
+            <h1 className="max-w-4xl text-4xl font-black tracking-normal md:text-6xl xl:text-5xl 2xl:text-6xl">Transform Industrial Knowledge Into Operational Intelligence</h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300">The operating system for Plant A: cited AI, asset intelligence, maintenance decisions, compliance evidence, and executive control in one calm command surface.</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/platform/copilot?question=Why%20has%20Pump%20P101%20failed%20repeatedly%3F" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-blue-500 px-5 text-sm font-bold text-white shadow-[0_0_32px_rgba(59,130,246,0.35)] transition hover:bg-cyan-500"><PlayCircle size={18} /> Run flagship demo</Link>

@@ -1,4 +1,4 @@
-import {mechanismReason,mechanismCheck} from './mechanisms';
+import {mechanismReason,mechanismCheck,conceptRoot} from './mechanisms';
 import { hash } from './state';
 import type { Claim, Evidence } from './contracts';
 
@@ -7,8 +7,12 @@ export type Verdict = { claim_id:string; verdict:'supported'|'partially_supporte
 export type VerifierResponse = { overall_status:'verified'|'partially_verified'|'unverified'; claim_verdicts:Verdict[]; supported_claim_count:number; partially_supported_claim_count:number; unsupported_claim_count:number; requires_human_review:boolean };
 export type AssignedClaim = {index:number;claim_id:string;claim:Claim};
 export type ExcerptCheck = {original:string;normalized:string;matches:string[];passed:boolean};
-export type Decision = {index:number;claim_id:string;original_claim:Claim;released_claim?:Claim;outcome:'full'|'narrowed'|'rejected';reason:string;verifier_verdict?:string;verifier_reason?:string;excerpts:ExcerptCheck[];propositions?:ReturnType<typeof mechanismCheck>};
+export type Decision = {index:number;claim_id:string;original_claim:Claim;released_claim?:Claim;outcome:'full'|'narrowed'|'rejected';reason:string;verifier_verdict?:string;verifier_reason?:string;verifier_claim?:string;excerpts:ExcerptCheck[];propositions?:ReturnType<typeof mechanismCheck>};
 export const normalizePassage = (text:string) => text.normalize('NFC').trim().replace(/\s+/gu,' ');
+// Claim formatting only: tolerate separators after word labels/list items.
+// Numeric punctuation, quotation, signs, units and all words stay unchanged.
+// Source-excerpt matching never uses this transformation.
+const supportedFormatting=(text:string)=>normalizePassage(text).replace(/(?<=\p{L})[:;,](?=\s)/gu,'');
 export function normalizeExcerpt(text:string) {
   const normalized=normalizePassage(text);
   const pairs:Record<string,string>={'"':'"',"'":"'",'“':'”','‘':'’'};
@@ -97,7 +101,7 @@ export function parseVerifierResponse(raw:unknown,submitted:AssignedClaim[]):Ver
 // verdict and source excerpts. Novel technical concepts and removed uncertainty
 // are rejected; difficult but valid rewrites may require human review.
 const connective=new Set('a an the and or but of in on at to for from with as that which it its is are was were be been being has have had this these those by also cited source sources record records history states says shows noted notes including includes include'.split(' '));
-const concepts=(text:string)=>new Set((text.toLowerCase().match(/[\p{L}\p{N}]+/gu)||[]).filter(t=>!connective.has(t)).map(t=>t.replace(/ing$|ed$|s$/g,'')));
+const concepts=(text:string)=>new Set((text.toLowerCase().match(/[\p{L}\p{N}]+/gu)||[]).filter(t=>!connective.has(t)).map(conceptRoot));
 export function narrowerReason(original:string,narrowed:string):string|null {
   if(!narrowed.trim())return 'empty narrowed claim';
   if(normalizePassage(original)===normalizePassage(narrowed))return null;
@@ -105,7 +109,18 @@ export function narrowerReason(original:string,narrowed:string):string|null {
   if(references(narrowed).some(r=>!original.toLowerCase().includes(r.toLowerCase())))return 'narrowed claim adds standard/reference';
   const originalConcepts=concepts(original);
   if([...concepts(narrowed)].some(t=>!originalConcepts.has(t)))return 'narrowed claim adds concepts or instructions';
-  for(const marker of ['not','never','cannot','possible','possibly','may','might','could','reported','suspected'])if(new RegExp('\\b'+marker+'\\b','i').test(original)&&!new RegExp('\\b'+marker+'\\b','i').test(narrowed))return 'narrowed claim removes uncertainty or negation';
+  const clauses=original.split(/;\s*|(?<=[.!?])\s+|(?=\bwith (?:a )?notes?\b)/i);
+  for(const marker of ['not','never','cannot','possible','possibly','may','might','could','reported','suspected']){
+    const has=(text:string)=>new RegExp('\\b'+marker+'\\b','i').test(text);
+    if(!has(original)||has(narrowed))continue;
+    const retained=concepts(narrowed),unqualified=new Set(clauses.filter(c=>!has(c)).flatMap(c=>[...concepts(c)]));
+    for(const clause of clauses.filter(has)){
+      const qualified=[...concepts(clause)].filter(c=>c!==conceptRoot(marker)&&!unqualified.has(c));
+      // Removing an entire qualified note is safe only when none of its distinct
+      // content survives. Ambiguous scope or retained content keeps the guard.
+      if(!qualified.length||qualified.some(c=>retained.has(c)))return 'narrowed claim removes uncertainty or negation';
+    }
+  }
   return null;
 }
 
@@ -118,7 +133,10 @@ export function validateVerdicts(submitted:AssignedClaim[],raw:unknown,evidence:
     const excerpts=v.supporting_excerpts.map(q=>checkExcerpt(q,cited));
     const candidate:Claim={kind:item.claim.kind,text:v.validated_claim,citations:v.citation_ids};
     let reason=v.verdict==='unsupported'?'verifier unsupported':v.is_hypothesis!==(candidate.kind==='inference')?'claim classification changed':!v.citation_ids.length?'invalid citation ID':null;
-    if(!reason&&v.verdict==='supported'&&candidate.text!==item.claim.text)reason='supported claim text changed';
+    if(!reason&&v.verdict==='supported'){
+      if(supportedFormatting(candidate.text)!==supportedFormatting(item.claim.text))reason='supported claim text changed';
+      else candidate.text=item.claim.text;
+    }
     if(!reason&&v.verdict==='partially_supported') {
       reason=narrowerReason(item.claim.text,candidate.text);
       if(!reason&&normalizePassage(candidate.text)===normalizePassage(item.claim.text)&&!cited.some(e=>normalizePassage(e.text).includes(normalizePassage(candidate.text))))reason='partial verdict did not narrow unsupported text';
@@ -128,7 +146,7 @@ export function validateVerdicts(submitted:AssignedClaim[],raw:unknown,evidence:
     if(!reason&&(!excerpts.length||excerpts.some(q=>!q.passed)))reason='supporting excerpt mismatch or trivial excerpt';
     const matched=new Set(excerpts.flatMap(q=>q.matches));
     if(!reason&&candidate.citations.some(id=>!matched.has(id)))reason='citation lacks a matching supporting excerpt';
-    return {index:item.index,claim_id:item.claim_id,original_claim:item.claim,...(!reason?{released_claim:candidate}:{}),outcome:reason?'rejected':v.verdict==='partially_supported'?'narrowed':'full',reason:reason||'validated',verifier_verdict:v.verdict,verifier_reason:v.reason,excerpts,propositions:mechanismCheck(candidate,cited)} as Decision;
+    return {index:item.index,claim_id:item.claim_id,original_claim:item.claim,...(!reason?{released_claim:candidate}:{}),outcome:reason?'rejected':v.verdict==='partially_supported'?'narrowed':'full',reason:reason||'validated',verifier_verdict:v.verdict,verifier_reason:v.reason,verifier_claim:v.validated_claim,excerpts,propositions:mechanismCheck(candidate,cited)} as Decision;
   });
   return {decisions,entries:response.claim_verdicts.length,contract_inconsistencies:response.inconsistencies};
 }
