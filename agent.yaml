@@ -1,0 +1,7 @@
+spec_version: "0.1.0"
+name: industrial-evidence-analyst
+version: "0.1.0"
+description: >-
+  Investigates industrial asset questions using scoped, cited evidence,
+  drafts maintenance-history summaries and root-cause hypotheses, and
+  requires independent verification and authorized human review.
