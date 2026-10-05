@@ -11,7 +11,7 @@ const toneMap: Record<string, string> = {
 };
 
 export function GlassCard({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <section className={cn("glass min-w-0 rounded-2xl p-5 transition duration-200 hover:border-cyan-300/22 hover:bg-white/[0.09]", className)}>{children}</section>;
+  return <section className={cn("glass min-w-0 rounded-2xl p-5", className)}>{children}</section>;
 }
 
 export function ChartCard({ title, subtitle, children, className }: { title: string; subtitle?: string; children: React.ReactNode; className?: string }) {
@@ -20,7 +20,7 @@ export function ChartCard({ title, subtitle, children, className }: { title: str
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent" />
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-base font-semibold text-white">{title}</h2>
+          <h2 className="text-xl font-semibold text-white">{title}</h2>
           {subtitle ? <p className="mt-1 text-sm leading-6 text-slate-400">{subtitle}</p> : null}
         </div>
         <ArrowUpRight className="shrink-0 text-slate-500" size={18} />

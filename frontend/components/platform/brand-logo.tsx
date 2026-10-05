@@ -14,6 +14,7 @@ const sizes = {
 export function BrandLogo({ size = "md", className }: BrandLogoProps) {
   return (
     <div
+      role="img"
       aria-label="Industrial Brain AI logo"
       className={cn(
         "relative grid shrink-0 place-items-center overflow-hidden border border-cyan-200/30 bg-[radial-gradient(circle_at_28%_18%,rgba(255,255,255,0.32),transparent_24%),linear-gradient(135deg,#0B1F3A_0%,#0f3a68_38%,#007BFF_68%,#00C2FF_100%)] shadow-[0_0_36px_rgba(0,194,255,0.34),inset_0_1px_0_rgba(255,255,255,0.42)]",
@@ -22,7 +23,7 @@ export function BrandLogo({ size = "md", className }: BrandLogoProps) {
       )}
     >
       <div className="absolute inset-[4px] rounded-[inherit] bg-[#061425]/18 shadow-[inset_0_0_24px_rgba(255,255,255,0.14)]" />
-      <svg viewBox="0 0 72 72" role="img" className="relative h-[80%] w-[80%] drop-shadow-[0_4px_14px_rgba(0,0,0,0.42)]">
+      <svg viewBox="0 0 72 72" aria-hidden="true" className="relative h-[80%] w-[80%] drop-shadow-[0_4px_14px_rgba(0,0,0,0.42)]">
         <defs>
           <linearGradient id="industrial-brain-mark" x1="12" x2="60" y1="10" y2="62" gradientUnits="userSpaceOnUse">
             <stop stopColor="#ffffff" />
