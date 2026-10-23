@@ -16,8 +16,10 @@ RUN /opt/fastembed/bin/python scripts/fastembed-worker.py --download > /dev/null
 COPY demo-data /app/demo-data
 RUN node scripts/index-demo-evidence.mjs
 RUN npm run build
+RUN pnpm prune --prod && rm -rf .next/cache /root/.cache
 
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV ENVIRONMENT=production
 ENV PORT=3000
 EXPOSE 3000
