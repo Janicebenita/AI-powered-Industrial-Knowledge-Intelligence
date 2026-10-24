@@ -1,19 +1,12 @@
-"use client";
+﻿import { Command, Search } from "lucide-react";
 
-import { Search, ArrowUpRight } from "lucide-react";
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { navItems } from "@/lib/demo-data";
-
-export function CommandSearch({ placeholder = "Search the workspace…" }: { placeholder?: string }) {
-  const [query, setQuery] = useState("");
-  const [focused, setFocused] = useState(false);
-  const router = useRouter();
-  const matches = navItems.filter(item => item.label.toLowerCase().includes(query.trim().toLowerCase()));
-  return <form className="command-search" role="search" onSubmit={event => { event.preventDefault(); if (query.trim()) { setFocused(false); router.push(`/platform/copilot?question=${encodeURIComponent(query.trim())}`); } }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false); }}>
-    <Search size={19} aria-hidden="true" />
-    <input aria-label="Global search" value={query} onChange={event => setQuery(event.target.value)} onFocus={() => setFocused(true)} onKeyDown={event => { if (event.key === "Escape") setFocused(false); }} placeholder={placeholder} autoComplete="off" />
-    {focused && query.trim() && <div className="search-results"><p>WORKSPACE SHORTCUTS</p>{matches.map(({ label, href, icon: Icon }) => <Link key={href} href={href} onClick={() => { setFocused(false); setQuery(""); }}><Icon size={18} />{label}<ArrowUpRight size={15} /></Link>)}<button type="submit"><Search size={18} /><span>Ask Copilot: {query}</span><ArrowUpRight size={15} /></button></div>}
-  </form>;
+export function CommandSearch({ placeholder = "Search assets, SOPs, work orders, regulations, citations..." }: { placeholder?: string }) {
+  return (
+    <label className="hidden min-h-11 flex-1 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 text-slate-400 transition focus-within:border-cyan-300/50 focus-within:bg-white/[0.08] md:flex">
+      <Search size={17} className="shrink-0" />
+      <span className="sr-only">Global search</span>
+      <input className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-slate-500" placeholder={placeholder} />
+      <span className="ml-auto inline-flex items-center gap-1 rounded-md border border-white/10 px-2 py-1 text-xs"><Command size={12} /> K</span>
+    </label>
+  );
 }

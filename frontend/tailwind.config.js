@@ -2,7 +2,6 @@ export default {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./hooks/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}", "./services/**/*.{ts,tsx}"],
   theme: {
     extend: {
-      fontSize: { xs: ["0.875rem", "1.35rem"], sm: ["0.9375rem", "1.5rem"] },
       colors: {
         industrial: {
           bg: "#050816",
