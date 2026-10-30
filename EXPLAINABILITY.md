@@ -14,6 +14,14 @@ The key limitation is that retrieved maintenance history does not prove the enti
 
 ## Implementation in This Repository
 
-`backend/app/main.py` exposes the backend application, and `backend/app/agents/orchestrator.py` coordinates the repository's specialist-agent workflow. The adjacent backend agent modules retrieve and synthesize authorized evidence, while the API returns the answer, citations, and supporting metadata to the caller.
+`backend/app/main.py` creates the FastAPI service and mounts the repository's authenticated API routes. `backend/app/agents/orchestrator.py` constructs seven concrete specialists—document intelligence, knowledge graph, maintenance intelligence, compliance, root-cause analysis, lessons learned, and executive insights—and `run_agents(context)` runs each specialist over the same authorized context and serializes its result.
 
-The implementation therefore separates retrieved source material from generated reasoning and preserves human authority over maintenance decisions. The OpenGAP files describe that concrete code path rather than an external or hypothetical agent.
+The adjacent `backend/app/services` and `backend/app/rag` modules implement ingestion, retrieval, evidence access, citations, and reports, while API schemas structure the response. The code therefore separates retrieved source material from generated reasoning and preserves human authority over maintenance decisions.
+
+## Outputs and supporting evidence
+
+The API returns specialist findings with citations, source identifiers, and supporting metadata assembled from the authorized retrieval context. That provenance lets the reviewer trace a proposed root cause or maintenance action back to the records used.
+
+## Uncertainty and human review
+
+Retrieval may be incomplete and generated hypotheses are not verified mechanisms. Authorized engineers must inspect cited records and approve every safety, compliance, or maintenance action.
