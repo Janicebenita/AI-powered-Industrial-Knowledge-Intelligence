@@ -11,3 +11,9 @@ Inputs include an authenticated user's question, authorized organization and pla
 ## Limits and known constraints
 
 The key limitation is that retrieved maintenance history does not prove the entire external record has been found, and generated root-cause output may vary. Model confidence is not calibrated, some dashboards contain labelled demonstration data, and the Render Free deployment uses temporary storage and a single-instance integration design. The assistant must not treat a cited hypothesis as a verified mechanism or claim authority to approve maintenance, safety, compliance, or corrective work; operational decisions remain with authorized humans.
+
+## Implementation in This Repository
+
+`backend/app/main.py` exposes the backend application, and `backend/app/agents/orchestrator.py` coordinates the repository's specialist-agent workflow. The adjacent backend agent modules retrieve and synthesize authorized evidence, while the API returns the answer, citations, and supporting metadata to the caller.
+
+The implementation therefore separates retrieved source material from generated reasoning and preserves human authority over maintenance decisions. The OpenGAP files describe that concrete code path rather than an external or hypothetical agent.
